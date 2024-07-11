@@ -75,11 +75,9 @@ class ScenarioLight(ScenarioUpdatableEntity, LightEntity):
     @property
     def is_on(self) -> bool:
         """Return whether this light is on or off."""
-        if (
+        return (
             self._attr_brightness > 0 or any(self._attr_rgb_color) > 0
-        ) and self._attr_available:
-            return True
-        return False
+        ) and self._attr_available
 
     @property
     def brightness(self) -> int:
