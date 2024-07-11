@@ -1,6 +1,7 @@
 {
   "domain": "scenario",
   "name": "Scenario Automation (IFSEI Classic)",
+  "version": "0.1.0",
   "codeowners": ["@carlosmazzei"],
   "config_flow": true,
   "dependencies": [],
