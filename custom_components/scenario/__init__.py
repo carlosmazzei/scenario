@@ -113,9 +113,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STOP, on_hass_stop)
     )
 
-    async def update_listener(
-        hass: HomeAssistant, entry: ConfigEntry  # noqa: ARG001
-    ) -> None:
+    async def update_listener(entry: ConfigEntry) -> None:
         """Handle options update."""
         entry_data[CONF_DELAY] = entry.options.get(CONF_DELAY, IFSEI_ATTR_SEND_DELAY)
         ifsei.set_send_delay(entry_data[CONF_DELAY])
