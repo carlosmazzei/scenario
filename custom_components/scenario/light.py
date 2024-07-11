@@ -56,6 +56,8 @@ class ScenarioLight(ScenarioUpdatableEntity, LightEntity):
         """Initialize a scenario light."""
         super().__init__(light, ifsei)
         self._attr_available = ifsei.is_connected
+        self._attr_brightness = 0
+        self._attr_rgb_color = [0, 0, 0]
         self.zone = light.zone
         addresses = light.address
         light.add_subscriber(self.async_update_callback)
