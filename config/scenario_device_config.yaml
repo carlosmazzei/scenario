@@ -1,0 +1,496 @@
+# Example configuratin file for scenario integration
+# IMPORTANT: This file is an example and is not intended for production use. Please refer to the documentation for more information.
+
+# Zone config
+zones:
+  - id: 1
+    name: Area de Servico
+  - id: 2
+    name: Banho Elisa
+  - id: 3
+    name: Suite Elisa
+  - id: 4
+    name: Banho Master
+  - id: 5
+    name: Suite Master
+  - id: 6
+    name: Cozinha
+  - id: 7
+    name: Escritorio
+  - id: 8
+    name: Jantar
+  - id: 9
+    name: Cozinha
+  - id: 10
+    name: Sala
+  - id: 11
+    name: Lavabo
+# Lights config
+lights:
+  - id: 1
+    name: Bancada
+    zone: 6
+    isRGB: false
+    address:
+      - name: w
+        module: 4
+        channel: 5
+        isDimmeable: false
+  - id: 2
+    name: Sanca
+    zone: 6
+    isRGB: false
+    address:
+      - name: w
+        module: 3
+        channel: 8
+        isDimmeable: false
+  - id: 3
+    name: Led Pia
+    zone: 6
+    isRGB: false
+    address:
+      - name: w
+        module: 2
+        channel: 6
+        isDimmeable: false
+  - id: 4
+    name: Despensa Centro
+    zone: 6
+    isRGB: false
+    address:
+      - name: w
+        module: 5
+        channel: 1
+        isDimmeable: false
+  - id: 5
+    name: Despensa LED
+    zone: 6
+    isRGB: false
+    address:
+      - name: w
+        module: 2
+        channel: 4
+        isDimmeable: false
+  - id: 6
+    name: Area de Servico - Interno
+    zone: 1
+    isRGB: false
+    address:
+      - name: w
+        module: 4
+        channel: 1
+        isDimmeable: false
+  - id: 7
+    name: Area de Servico - Externo
+    zone: 1
+    isRGB: false
+    address:
+      - name: w
+        module: 5
+        channel: 7
+        isDimmeable: false
+  - id: 9
+    name: Balizador
+    zone: 7
+    isRGB: false
+    address:
+      - name: w
+        module: 3
+        channel: 2
+        isDimmeable: false
+  - id: 10
+    name: Sanca
+    zone: 7
+    isRGB: false
+    address:
+      - name: w
+        module: 4
+        channel: 3
+        isDimmeable: false
+  - id: 11
+    name: Led Movel
+    zone: 7
+    isRGB: false
+    address:
+      - name: w
+        module: 4
+        channel: 7
+        isDimmeable: true
+  - id: 12
+    name: Spots
+    zone: 7
+    isRGB: false
+    address:
+      - name: w
+        module: 6
+        channel: 3
+        isDimmeable: true
+  - id: 13
+    name: Pendente
+    zone: 8
+    isRGB: false
+    address:
+      - name: w
+        module: 3
+        channel: 6
+        isDimmeable: false
+  - id: 14
+    name: Sanca
+    zone: 8
+    isRGB: false
+    address:
+      - name: w
+        module: 4
+        channel: 4
+        isDimmeable: false
+  - id: 15
+    name: Parede
+    zone: 8
+    isRGB: false
+    address:
+      - name: w
+        module: 6
+        channel: 2
+        isDimmeable: true
+  - id: 16
+    name: Cortineiro
+    zone: 10
+    isRGB: false
+    address:
+      - name: w
+        module: 2
+        channel: 8
+        isDimmeable: false
+  - id: 17
+    name: Movel Frontal
+    zone: 10
+    isRGB: false
+    address:
+      - name: w
+        module: 2
+        channel: 7
+        isDimmeable: false
+  - id: 18
+    name: Movel Lateral
+    zone: 10
+    isRGB: false
+    address:
+      - name: w
+        module: 3
+        channel: 3
+        isDimmeable: false
+  - id: 19
+    name: Poltrona
+    zone: 10
+    isRGB: false
+    address:
+      - name: w
+        module: 6
+        channel: 7
+        isDimmeable: false
+  - id: 20
+    name: Centro
+    zone: 10
+    isRGB: false
+    address:
+      - name: w
+        module: 6
+        channel: 8
+        isDimmeable: true
+  - id: 21
+    name: Spots
+    zone: 10
+    isRGB: false
+    address:
+      - name: w
+        module: 6
+        channel: 6
+        isDimmeable: true
+  - id: 22
+    name: Circulacao Suites
+    zone: 10
+    isRGB: false
+    address:
+      - name: w
+        module: 5
+        channel: 8
+        isDimmeable: false
+  - id: 23
+    name: Lavabo Centro
+    zone: 11
+    isRGB: false
+    address:
+      - name: w
+        module: 5
+        channel: 6
+        isDimmeable: false
+  - id: 24
+    name: Lavabo Pia
+    zone: 11
+    isRGB: false
+    address:
+      - name: w
+        module: 2
+        channel: 3
+        isDimmeable: false
+  - id: 25
+    name: Centro
+    zone: 2
+    isRGB: false
+    address:
+      - name: w
+        module: 5
+        channel: 4
+        isDimmeable: false
+  - id: 26
+    name: Espelho
+    zone: 2
+    isRGB: false
+    address:
+      - name: w
+        module: 2
+        channel: 1
+        isDimmeable: false
+  - id: 27
+    name: Ducha
+    zone: 2
+    isRGB: false
+    address:
+      - name: w
+        module: 5
+        channel: 5
+        isDimmeable: false
+  - id: 28
+    name: Spots
+    zone: 2
+    isRGB: false
+    address:
+      - name: w
+        module: 4
+        channel: 6
+        isDimmeable: false
+  - id: 29
+    name: Nicho Banho
+    zone: 2
+    isRGB: true
+    address:
+      - name: r
+        module: 7
+        channel: 1
+        isDimmeable: true
+      - name: g
+        module: 7
+        channel: 2
+        isDimmeable: true
+      - name: b
+        module: 7
+        channel: 3
+        isDimmeable: true
+      - name: w
+        module: 7
+        channel: 4
+        isDimmeable: true
+  - id: 30
+    name: Entrada
+    zone: 3
+    isRGB: false
+    address:
+      - name: w
+        module: 5
+        channel: 3
+        isDimmeable: false
+  - id: 31
+    name: Painel
+    zone: 3
+    isRGB: false
+    address:
+      - name: w
+        module: 2
+        channel: 2
+        isDimmeable: false
+  - id: 32
+    name: Balizador
+    zone: 3
+    isRGB: false
+    address:
+      - name: w
+        module: 1
+        channel: 3
+        isDimmeable: false
+  - id: 33
+    name: Leitura
+    zone: 3
+    isRGB: false
+    address:
+      - name: w
+        module: 1
+        channel: 1
+        isDimmeable: false
+  - id: 34
+    name: Sanca
+    zone: 3
+    isRGB: false
+    address:
+      - name: w
+        module: 5
+        channel: 2
+        isDimmeable: false
+  - id: 35
+    name: Spots
+    zone: 3
+    isRGB: false
+    address:
+      - name: w
+        module: 6
+        channel: 4
+        isDimmeable: true
+  - id: 36
+    name: Centro
+    zone: 4
+    isRGB: false
+    address:
+      - name: w
+        module: 3
+        channel: 5
+        isDimmeable: false
+  - id: 37
+    name: Ducha
+    zone: 4
+    isRGB: false
+    address:
+      - name: w
+        module: 4
+        channel: 2
+        isDimmeable: false
+  - id: 38
+    name: Spots Espelho
+    zone: 4
+    isRGB: false
+    address:
+      - name: w
+        module: 3
+        channel: 1
+        isDimmeable: false
+  - id: 39
+    name: Leds Espelho
+    zone: 4
+    isRGB: false
+    address:
+      - name: w
+        module: 3
+        channel: 7
+        isDimmeable: false
+  - id: 40
+    name: Nicho Banho
+    zone: 4
+    isRGB: true
+    address:
+      - name: r
+        module: 8
+        channel: 1
+        isDimmeable: true
+      - name: g
+        module: 8
+        channel: 2
+        isDimmeable: true
+      - name: b
+        module: 8
+        channel: 3
+        isDimmeable: true
+      - name: w
+        module: 8
+        channel: 4
+        isDimmeable: true
+  - id: 41
+    name: Sanca
+    zone: 5
+    isRGB: false
+    address:
+      - name: w
+        module: 4
+        channel: 8
+        isDimmeable: false
+  - id: 42
+    name: Varanda
+    zone: 5
+    isRGB: false
+    address:
+      - name: w
+        module: 3
+        channel: 4
+        isDimmeable: false
+  - id: 43
+    name: Balizador
+    zone: 5
+    isRGB: false
+    address:
+      - name: w
+        module: 1
+        channel: 2
+        isDimmeable: false
+  - id: 44
+    name: LED
+    zone: 5
+    isRGB: false
+    address:
+      - name: w
+        module: 2
+        channel: 5
+        isDimmeable: false
+  - id: 45
+    name: Spots
+    zone: 5
+    isRGB: false
+    address:
+      - name: w
+        module: 6
+        channel: 5
+        isDimmeable: true
+  - id: 46
+    name: Closet
+    zone: 5
+    isRGB: false
+    address:
+      - name: w
+        module: 6
+        channel: 1
+        isDimmeable: true
+# Shades config
+shades:
+  - id: 1
+    name: Cortina
+    zone: 10
+    address1: "0002"
+    address2: "0003"
+    address3: "0004"
+  - id: 2
+    name: Persiana LD
+    zone: 10
+    address1: "0005"
+    address2: "0006"
+    address3: "0007"
+  - id: 3
+    name: Persiana LE
+    zone: 10
+    address1: "0008"
+    address2: "0009"
+    address3: "0010"
+  - id: 4
+    name: Persiana LD
+    zone: 5
+    address1: "0013"
+    address2: "0014"
+    address3: "0015"
+  - id: 5
+    name: Persiana LE
+    zone: 5
+    address1: "0102"
+    address2: "0103"
+    address3: "0104"
+  - id: 6
+    name: Persiana Lateral
+    zone: 5
+    address1: "0105"
+    address2: "0106"
+    address3: "0107"
