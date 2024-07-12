@@ -17,3 +17,4 @@ coverage.xml
 # Home Assistant configuration
 config/*
 !config/configuration.yaml
+!config/scenario_device_config.yaml
