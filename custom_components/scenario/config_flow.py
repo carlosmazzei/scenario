@@ -20,7 +20,12 @@ from homeassistant.helpers import selector
 from pyscenario.const import IFSEI_ATTR_SEND_DELAY
 from pyscenario.ifsei import IFSEI, NetworkConfiguration, Protocol
 
-from .const import CONF_CONTROLLER_UNIQUE_ID, DOMAIN
+from .const import (
+    CONF_CONTROLLER_UNIQUE_ID,
+    DOMAIN,
+    IFSEI_CONF_RECONNECT,
+    IFSEI_CONF_RECONNECT_DELAY,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -121,17 +126,32 @@ class OptionsFlowHandler(OptionsFlow):
         """Handle options flow."""
         if user_input is not None:
             return self.async_create_entry(
-                title="Send delay time (ms)", data=user_input
+                title="Other options",
+                data={
+                    CONF_DELAY: user_input[CONF_DELAY],
+                    IFSEI_CONF_RECONNECT: user_input[IFSEI_CONF_RECONNECT],
+                    IFSEI_CONF_RECONNECT_DELAY: user_input[IFSEI_CONF_RECONNECT_DELAY],
+                },
             )
+
+        send_delay_default = self.config_entry.options.get(
+            CONF_DELAY, IFSEI_ATTR_SEND_DELAY
+        )
+        reconnect_default = self.config_entry.options.get(IFSEI_CONF_RECONNECT, True)
+        reconnect_delay_default = self.config_entry.options.get(
+            IFSEI_CONF_RECONNECT_DELAY, 30
+        )
 
         data_schema = vol.Schema(
             {
                 vol.Optional(
                     CONF_DELAY,
-                    default=self.config_entry.options.get(
-                        CONF_DELAY, IFSEI_ATTR_SEND_DELAY
-                    ),
+                    default=send_delay_default,
                 ): vol.All(cv.positive_float, vol.Clamp(min=0.1, max=0.5)),
+                vol.Optional(IFSEI_CONF_RECONNECT, default=reconnect_default): bool,
+                vol.Optional(
+                    IFSEI_CONF_RECONNECT_DELAY, default=reconnect_delay_default
+                ): vol.All(cv.positive_float, vol.Clamp(min=5.0, max=60.0)),
             }
         )
         return self.async_show_form(step_id="init", data_schema=data_schema)

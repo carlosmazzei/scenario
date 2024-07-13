@@ -5,17 +5,15 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING
 
-import homeassistant.helpers.config_validation as cv
 import voluptuous as vol
 from homeassistant.const import (
     CONF_DELAY,
     CONF_HOST,
     CONF_PORT,
     CONF_PROTOCOL,
-    EVENT_HOMEASSISTANT_STOP,
     Platform,
 )
-from homeassistant.core import Event, HomeAssistant, callback
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.device_registry import DeviceInfo
@@ -27,6 +25,8 @@ from .const import (
     CONTROLLER_ENTRY,
     COVERS_ENTRY,
     DOMAIN,
+    IFSEI_CONF_RECONNECT,
+    IFSEI_CONF_RECONNECT_DELAY,
     LIGHTS_ENTRY,
     MANUFACTURER,
     YAML_DEVICES,
@@ -40,22 +40,6 @@ from pathlib import Path
 _LOGGER = logging.getLogger(__name__)
 
 
-CONFIG_SCHEMA = vol.Schema(
-    {
-        DOMAIN: vol.All(
-            cv.ensure_list,
-            [
-                {
-                    vol.Required(CONF_HOST): cv.string,
-                    vol.Required(CONF_PORT): cv.string,
-                    vol.Required(CONF_PROTOCOL): cv.string,
-                }
-            ],
-        )
-    },
-    extra=vol.ALLOW_EXTRA,
-)
-
 PLATFORMS: list[Platform] = [Platform.COVER, Platform.LIGHT]
 
 
@@ -66,8 +50,26 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     port = entry.data[CONF_PORT]
     protocol = Protocol[entry.data[CONF_PROTOCOL].upper()]
 
-    network_configuration = NetworkConfiguration(host, port, port, protocol)
+    hass.data.setdefault(DOMAIN, {})
+    entry_data = hass.data[DOMAIN].setdefault(entry.entry_id, {})
+
+    # Load options from config entry
+    entry_data[CONF_DELAY] = entry.options.get(CONF_DELAY, IFSEI_ATTR_SEND_DELAY)
+    entry_data[IFSEI_CONF_RECONNECT] = entry.options.get(IFSEI_CONF_RECONNECT, True)
+    entry_data[IFSEI_CONF_RECONNECT_DELAY] = entry.options.get(
+        IFSEI_CONF_RECONNECT_DELAY, 5
+    )
+
+    network_configuration = NetworkConfiguration(
+        host,
+        port,
+        port,
+        protocol,
+        entry_data[IFSEI_CONF_RECONNECT],
+        entry_data[IFSEI_CONF_RECONNECT_DELAY],
+    )
     ifsei = IFSEI(network_config=network_configuration)
+    ifsei.set_send_delay(entry_data[CONF_DELAY])
 
     try:
         file_path = Path(hass.config.path(), YAML_DEVICES)
@@ -95,28 +97,25 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     _async_register_scenario_device(hass, entry_id, ifsei)
 
-    hass.data.setdefault(DOMAIN, {})
-    entry_data = hass.data[DOMAIN].setdefault(entry.entry_id, {})
     entry_data[CONTROLLER_ENTRY] = ifsei
     entry_data[LIGHTS_ENTRY] = ifsei.device_manager.get_devices_by_type(LIGHT_DEVICES)
     entry_data[COVERS_ENTRY] = ifsei.device_manager.get_devices_by_type(COVER_DEVICES)
 
-    # Load options from config entry
-    entry_data[CONF_DELAY] = entry.options.get(CONF_DELAY, IFSEI_ATTR_SEND_DELAY)
-    ifsei.set_send_delay(entry_data[CONF_DELAY])
-
-    async def on_hass_stop(event: Event) -> None:  # noqa: ARG001
-        """Stop push updates when hass stops."""
-        await ifsei.async_close()
-
-    entry.async_on_unload(
-        hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STOP, on_hass_stop)
-    )
-
-    async def update_listener(entry: ConfigEntry) -> None:
+    async def update_listener(
+        hass: HomeAssistant,  # noqa: ARG001
+        entry: ConfigEntry,
+    ) -> None:
         """Handle options update."""
         entry_data[CONF_DELAY] = entry.options.get(CONF_DELAY, IFSEI_ATTR_SEND_DELAY)
+        entry_data[IFSEI_CONF_RECONNECT] = entry.options.get(IFSEI_CONF_RECONNECT, True)
+        entry_data[IFSEI_CONF_RECONNECT_DELAY] = entry.options.get(
+            IFSEI_CONF_RECONNECT_DELAY, 5
+        )
         ifsei.set_send_delay(entry_data[CONF_DELAY])
+        ifsei.set_reconnect_options(
+            reconnect=entry_data[IFSEI_CONF_RECONNECT],
+            delay=entry_data[IFSEI_CONF_RECONNECT_DELAY],
+        )
 
     entry.async_on_unload(entry.add_update_listener(update_listener))
 
@@ -144,8 +143,13 @@ def _async_register_scenario_device(
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    """Unload a config entry."""
-    return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
+    """Unload the bridge from a config entry."""
+    entry_data = hass.data[DOMAIN].setdefault(entry.entry_id, {})
+    ifsei: IFSEI = entry_data[CONTROLLER_ENTRY]
+    await ifsei.async_close()
+    if unload_ok := await hass.config_entries.async_unload_platforms(entry, PLATFORMS):
+        hass.data[DOMAIN].pop(entry.entry_id)
+    return unload_ok
 
 
 class ScenarioUpdatableEntity(Entity):

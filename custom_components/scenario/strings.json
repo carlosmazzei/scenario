@@ -28,7 +28,9 @@
       "step": {
         "init": {
           "data": {
-            "delay": "Send delay time in ms"
+            "delay": "Send delay time in ms",
+            "reconnect": "Reconnect automatically on startup failure",
+            "reconnect_delay": "Reconnect delay time in s"
           }
         }
       }
