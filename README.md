@@ -77,6 +77,18 @@ Once the component has been installed, you need to configure it using the web in
 
 **Important**: This integration uses [pyscenario](https://github.com/carlosmazzei/pyscenario) to connect to the IFSEI device, and currently only the TCP protocol is implemented.
 
+### Options Flow
+
+This component implements an options flow with three parameters that can be configured:
+
+| Parameter       | Description                                                             | Default Value |
+| --------------- | ----------------------------------------------------------------------- | ------------- |
+| Send delay      | Set the delay between messages. Usually, IFSEI needs at least 200ms     | 200 ms        |
+| Reconnect       | Boolean to set if reconnection will start after a failed first connect. | True          |
+| Reconnect Delay | Set the reconnect delay between retries                                 | 30s           |
+
+**Important**: if reconnect is set to True it will only try to reconnect at the first failed connection, since the reconnection task will start if it connects succesfully and fails after.
+
 ## Usage
 
 After installation and configuration, you can start using the integration to control and monitor your connected devices. You will be able to manage lights and covers directly from the Home Assistant interface. Use the automation capabilities of Home Assistant to create complex scenarios and routines involving your devices.
