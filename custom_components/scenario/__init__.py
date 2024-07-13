@@ -11,10 +11,9 @@ from homeassistant.const import (
     CONF_HOST,
     CONF_PORT,
     CONF_PROTOCOL,
-    EVENT_HOMEASSISTANT_STOP,
     Platform,
 )
-from homeassistant.core import Event, HomeAssistant, callback
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.device_registry import DeviceInfo
@@ -102,14 +101,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     entry_data[LIGHTS_ENTRY] = ifsei.device_manager.get_devices_by_type(LIGHT_DEVICES)
     entry_data[COVERS_ENTRY] = ifsei.device_manager.get_devices_by_type(COVER_DEVICES)
 
-    async def on_hass_stop(event: Event) -> None:  # noqa: ARG001
-        """Stop push updates when hass stops."""
-        await ifsei.async_close()
-
-    entry.async_on_unload(
-        hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STOP, on_hass_stop)
-    )
-
     async def update_listener(
         hass: HomeAssistant,  # noqa: ARG001
         entry: ConfigEntry,
@@ -122,7 +113,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         )
         ifsei.set_send_delay(entry_data[CONF_DELAY])
         ifsei.set_reconnect_options(
-            entry_data[IFSEI_CONF_RECONNECT], entry_data[IFSEI_CONF_RECONNECT_DELAY]
+            reconnect=entry_data[IFSEI_CONF_RECONNECT],
+            delay=entry_data[IFSEI_CONF_RECONNECT_DELAY],
         )
 
     entry.async_on_unload(entry.add_update_listener(update_listener))
@@ -151,8 +143,13 @@ def _async_register_scenario_device(
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    """Unload a config entry."""
-    return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
+    """Unload the bridge from a config entry."""
+    entry_data = hass.data[DOMAIN].setdefault(entry.entry_id, {})
+    ifsei: IFSEI = entry_data[CONTROLLER_ENTRY]
+    await ifsei.async_close()
+    if unload_ok := await hass.config_entries.async_unload_platforms(entry, PLATFORMS):
+        hass.data[DOMAIN].pop(entry.entry_id)
+    return unload_ok
 
 
 class ScenarioUpdatableEntity(Entity):
