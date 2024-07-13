@@ -139,7 +139,7 @@ class OptionsFlowHandler(OptionsFlow):
         )
         reconnect_default = self.config_entry.options.get(IFSEI_CONF_RECONNECT, True)
         reconnect_delay_default = self.config_entry.options.get(
-            IFSEI_CONF_RECONNECT_DELAY, 10
+            IFSEI_CONF_RECONNECT_DELAY, 30
         )
 
         data_schema = vol.Schema(
