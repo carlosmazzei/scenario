@@ -6,6 +6,18 @@
             "type": "shell",
             "command": "scripts/develop",
             "problemMatcher": []
+        },
+        {
+            "label": "Install development requirements",
+            "type": "shell",
+            "command": "scripts/setup",
+            "problemMatcher": []
+        },
+        {
+            "label": "Run lint",
+            "type": "shell",
+            "command": "scripts/lint",
+            "problemMatcher": []
         }
     ]
 }

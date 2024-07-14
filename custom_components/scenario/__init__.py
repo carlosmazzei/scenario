@@ -24,6 +24,9 @@ from pyscenario.ifsei import IFSEI, NetworkConfiguration, Protocol
 from .const import (
     CONTROLLER_ENTRY,
     COVERS_ENTRY,
+    DEFAULT_RECONNECT,
+    DEFAULT_RECONNECT_DELAY,
+    DEFAULT_SEND_DELAY,
     DOMAIN,
     IFSEI_CONF_RECONNECT,
     IFSEI_CONF_RECONNECT_DELAY,
@@ -54,10 +57,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     entry_data = hass.data[DOMAIN].setdefault(entry.entry_id, {})
 
     # Load options from config entry
-    entry_data[CONF_DELAY] = entry.options.get(CONF_DELAY, IFSEI_ATTR_SEND_DELAY)
-    entry_data[IFSEI_CONF_RECONNECT] = entry.options.get(IFSEI_CONF_RECONNECT, True)
+    entry_data[CONF_DELAY] = entry.options.get(CONF_DELAY, DEFAULT_SEND_DELAY)
+    entry_data[IFSEI_CONF_RECONNECT] = entry.options.get(
+        IFSEI_CONF_RECONNECT, DEFAULT_RECONNECT
+    )
     entry_data[IFSEI_CONF_RECONNECT_DELAY] = entry.options.get(
-        IFSEI_CONF_RECONNECT_DELAY, 5
+        IFSEI_CONF_RECONNECT_DELAY, DEFAULT_RECONNECT_DELAY
     )
 
     network_configuration = NetworkConfiguration(
@@ -72,7 +77,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     ifsei.set_send_delay(entry_data[CONF_DELAY])
 
     try:
-        file_path = Path(hass.config.path(), YAML_DEVICES)
+        file_path = Path(hass.config.path(), YAML_DEVICES).absolute().as_posix()
         _LOGGER.info("Load devices from file, config path %s", file_path)
         await hass.async_add_executor_job(ifsei.load_devices, file_path)
         _LOGGER.info("Devices loaded")
