@@ -10,6 +10,6 @@
   "issue_tracker": "https://github.com/carlosmazzei/scenario/issues",
   "requirements": ["pyscenario==0.1.5"],
   "ssdp": [],
-  "version": "0.1.1",
+  "version": "0.1.2",
   "zeroconf": []
 }

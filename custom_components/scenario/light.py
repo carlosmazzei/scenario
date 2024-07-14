@@ -57,7 +57,7 @@ class ScenarioLight(ScenarioUpdatableEntity, LightEntity):
         super().__init__(light, ifsei)
         self._attr_available = ifsei.is_connected
         self._attr_brightness = 0
-        self._attr_rgb_color = [0, 0, 0]
+        self._attr_rgb_color = (0, 0, 0)
         self.zone = light.zone
         addresses = light.address
         light.add_subscriber(self.async_update_callback)
@@ -77,9 +77,11 @@ class ScenarioLight(ScenarioUpdatableEntity, LightEntity):
     @property
     def is_on(self) -> bool:
         """Return whether this light is on or off."""
-        return (
-            self._attr_brightness > 0 or any(self._attr_rgb_color) > 0
-        ) and self._attr_available
+        if self._attr_brightness is not None and self._attr_rgb_color is not None:
+            return (
+                self._attr_brightness > 0 or any(self._attr_rgb_color) > 0
+            ) and self._attr_available
+        return False
 
     @property
     def brightness(self) -> int:
@@ -108,7 +110,7 @@ class ScenarioLight(ScenarioUpdatableEntity, LightEntity):
 
         scaled_colors[3] = brightness if brightness is not None else 0
 
-        if self._ifsei.device_manager is not None:
+        if self._ifsei.device_manager is not None and self._attr_unique_id is not None:
             await self._ifsei.async_update_light_state(
                 self._attr_unique_id, scaled_colors
             )

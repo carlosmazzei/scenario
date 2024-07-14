@@ -1,5 +1,6 @@
 """Platform for Scenario Covers."""
 
+import logging
 from typing import Any
 
 from homeassistant.components.cover import (
@@ -25,6 +26,8 @@ from pyscenario.manager import Cover
 
 from . import ScenarioUpdatableEntity
 from .const import CONTROLLER_ENTRY, COVERS_ENTRY, DOMAIN
+
+_LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup_entry(
@@ -66,21 +69,24 @@ class ScenarioCover(ScenarioUpdatableEntity, CoverEntity):
 
     async def async_open_cover(self) -> None:
         """Open the cover."""
-        await self._ifsei.device_manager.async_update_cover_state(
-            self.unique_id, self.up
-        )
+        if self.unique_id is not None:
+            await self._ifsei.async_update_cover_state(self.unique_id, self.up)
+        else:
+            _LOGGER.debug("Missing device unique id")
 
     async def async_close_cover(self) -> None:
         """Close the cover."""
-        await self._ifsei.device_manager.async_update_cover_state(
-            self.unique_id, self.down
-        )
+        if self.unique_id is not None:
+            await self._ifsei.async_update_cover_state(self.unique_id, self.down)
+        else:
+            _LOGGER.debug("Missing device unique id")
 
     async def async_stop_cover(self) -> None:
         """Stop the cover."""
-        await self._ifsei.device_manager.async_update_cover_state(
-            self.unique_id, self.stop
-        )
+        if self.unique_id is not None:
+            await self._ifsei.async_update_cover_state(self.unique_id, self.stop)
+        else:
+            _LOGGER.debug("Missing device unique id")
 
     async def async_will_remove_from_hass(self) -> None:
         """Remove callbacks."""
