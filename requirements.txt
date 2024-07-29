@@ -3,4 +3,4 @@ homeassistant==2024.6.0
 pip>=21.3.1
 ruff==0.5.4
 pyscenario==0.1.7
-pre-commit==3.7.1
+pre-commit==3.8.0
