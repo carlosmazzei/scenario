@@ -8,8 +8,8 @@
   "homekit": {},
   "iot_class": "local_push",
   "issue_tracker": "https://github.com/carlosmazzei/scenario/issues",
-  "requirements": ["pyscenario==0.1.7"],
+  "requirements": ["pyscenario==0.1.8"],
   "ssdp": [],
-  "version": "0.1.4",
+  "version": "0.1.5",
   "zeroconf": []
 }
