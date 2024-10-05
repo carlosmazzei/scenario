@@ -99,7 +99,7 @@ class ScenarioLight(ScenarioUpdatableEntity, LightEntity):
         if brightness is not None:
             brightness = to_scenario_level(brightness)
 
-        rgb = kwargs.get(ATTR_RGB_COLOR, None)
+        rgb = kwargs.get(ATTR_RGB_COLOR)
 
         if rgb is not None:
             colors = list(rgb)
