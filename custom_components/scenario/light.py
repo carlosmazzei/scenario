@@ -5,7 +5,7 @@ from typing import Any, cast
 
 from homeassistant.components.light import (
     ATTR_BRIGHTNESS,
-    ATTR_RGB_COLOR,
+    ATTR_RGBW_COLOR,
     ColorMode,
     LightEntity,
 )
@@ -57,7 +57,7 @@ class ScenarioLight(ScenarioUpdatableEntity, LightEntity):
         super().__init__(light, ifsei)
         self._attr_available = ifsei.is_connected
         self._attr_brightness = 0
-        self._attr_rgb_color = (0, 0, 0)
+        self._attr_rgbw_color = (0, 0, 0, 0)
         self.zone = light.zone
         addresses = light.address
         light.add_subscriber(self.async_update_callback)
@@ -71,15 +71,15 @@ class ScenarioLight(ScenarioUpdatableEntity, LightEntity):
                     self._attr_color_mode = ColorMode.ONOFF
                     self._attr_supported_color_modes = {ColorMode.ONOFF}
         else:
-            self._attr_color_mode = ColorMode.RGB
-            self._attr_supported_color_modes = {ColorMode.RGB}
+            self._attr_color_mode = ColorMode.RGBW
+            self._attr_supported_color_modes = {ColorMode.RGBW}
 
     @property
     def is_on(self) -> bool:
         """Return whether this light is on or off."""
-        if self._attr_brightness is not None and self._attr_rgb_color is not None:
+        if self._attr_brightness is not None and self._attr_rgbw_color is not None:
             return (
-                self._attr_brightness > 0 or any(self._attr_rgb_color) > 0
+                self._attr_brightness > 0 or any(self._attr_rgbw_color) > 0
             ) and self._attr_available
         return False
 
@@ -99,18 +99,21 @@ class ScenarioLight(ScenarioUpdatableEntity, LightEntity):
         if brightness is not None:
             brightness = to_scenario_level(brightness)
 
-        rgb = kwargs.get(ATTR_RGB_COLOR)
+        rgbw = kwargs.get(ATTR_RGBW_COLOR)
 
-        if rgb is not None:
-            colors = list(rgb)
+        if rgbw is not None:
+            colors = list(rgbw)
             _LOGGER.debug(f"Current color: {colors}")  # noqa: G004
             scaled_colors[0] = to_scenario_level(colors[0])
             scaled_colors[1] = to_scenario_level(colors[1])
             scaled_colors[2] = to_scenario_level(colors[2])
-
-        scaled_colors[3] = brightness if brightness is not None else 0
+            scaled_colors[3] = to_scenario_level(colors[3])
+        else:
+            scaled_colors[3] = brightness if brightness is not None else 0
 
         if self._ifsei.device_manager is not None and self._attr_unique_id is not None:
+            _LOGGER.debug("Setting color: %s", scaled_colors)
+            # Update light state
             await self._ifsei.async_update_light_state(
                 self._attr_unique_id, scaled_colors
             )
@@ -136,29 +139,37 @@ class ScenarioLight(ScenarioUpdatableEntity, LightEntity):
         """Update callback."""
         brightness = kwargs.pop(IFSEI_ATTR_BRIGHTNESS, None)
         available = kwargs.pop(IFSEI_ATTR_AVAILABLE, None)
-        red = kwargs.pop(IFSEI_ATTR_RED, None)
-        green = kwargs.pop(IFSEI_ATTR_GREEN, None)
-        blue = kwargs.pop(IFSEI_ATTR_BLUE, None)
 
         if available is not None:
             self._attr_available = available
             _LOGGER.debug("Set device %s availability to %s", self.name, available)
 
-        if brightness is not None and self._attr_available:
+        if (
+            brightness is not None
+            and self._attr_available
+            and self._attr_color_mode == (ColorMode.BRIGHTNESS or ColorMode.ONOFF)
+        ):
             self._attr_brightness = to_hass_level(brightness)
 
-        # Initialize new_colors with the current rgb_color
-        new_colors = list(self.rgb_color) if self.rgb_color else [0, 0, 0]
+        if self._attr_color_mode == ColorMode.RGBW and self._attr_available:
+            red = kwargs.pop(IFSEI_ATTR_RED, None)
+            green = kwargs.pop(IFSEI_ATTR_GREEN, None)
+            blue = kwargs.pop(IFSEI_ATTR_BLUE, None)
 
-        # Update new_colors based on the provided color values
-        if red is not None:
-            new_colors[0] = to_hass_level(red)
-        if green is not None:
-            new_colors[1] = to_hass_level(green)
-        if blue is not None:
-            new_colors[2] = to_hass_level(blue)
+            # Initialize new_colors with the current rgbw_color
+            new_colors = list(self.rgbw_color) if self.rgbw_color else [0, 0, 0, 0]
 
-        # Set the updated colors
-        self._attr_rgb_color = cast(tuple[int, int, int], new_colors)
+            # Update new_colors based on the provided color values
+            if red is not None:
+                new_colors[0] = to_hass_level(red)
+            if green is not None:
+                new_colors[1] = to_hass_level(green)
+            if blue is not None:
+                new_colors[2] = to_hass_level(blue)
+            if brightness is not None:
+                new_colors[3] = to_hass_level(brightness)
+
+            # Set the updated colors
+            self._attr_rgbw_color = cast(tuple[int, int, int, int], new_colors)
 
         self.async_write_ha_state()
