@@ -144,11 +144,7 @@ class ScenarioLight(ScenarioUpdatableEntity, LightEntity):
             self._attr_available = available
             _LOGGER.debug("Set device %s availability to %s", self.name, available)
 
-        if (
-            brightness is not None
-            and self._attr_available
-            and self._attr_color_mode == (ColorMode.BRIGHTNESS or ColorMode.ONOFF)
-        ):
+        if brightness is not None and self._attr_available:
             self._attr_brightness = to_hass_level(brightness)
 
         if self._attr_color_mode == ColorMode.RGBW and self._attr_available:
