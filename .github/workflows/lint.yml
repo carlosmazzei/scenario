@@ -42,7 +42,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
         run: |
-          pip install -r requirements.test.txt
+          pip install -r requirements.test.txt -r requirements.txt
       - name: Run pytest
         run: |
           pytest --cov-report term
