@@ -1,4 +1,4 @@
-name: "Lint"
+name: "Lint & Test"
 
 on:
   push:
@@ -29,3 +29,22 @@ jobs:
 
         - name: "Format"
           run: python3 -m ruff format . --check
+  test:
+    name: "Test"
+    runs-on: "ubuntu-latest"
+    strategy:
+      matrix:
+        python-version:
+          - "3.12"
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.test.txt
+      - name: Run pytest
+        run: |
+          pytest --cov-report term

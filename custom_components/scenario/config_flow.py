@@ -141,12 +141,12 @@ class ScenarioOptionsFlowHandler(OptionsFlow):
             {
                 vol.Required(
                     CONF_DELAY,
-                    default=send_delay_default,  # type: ignore[reportArgumentType]
+                    default=send_delay_default,
                 ): vol.All(cv.positive_float, vol.Clamp(min=0.1, max=0.5)),
-                vol.Required(IFSEI_CONF_RECONNECT, default=reconnect_default): bool,  # type: ignore[reportArgumentType]
+                vol.Required(IFSEI_CONF_RECONNECT, default=reconnect_default): bool,
                 vol.Required(
                     IFSEI_CONF_RECONNECT_DELAY,
-                    default=reconnect_delay_default,  # type: ignore[reportArgumentType]
+                    default=reconnect_delay_default,
                 ): vol.All(cv.positive_float, vol.Clamp(min=5.0, max=60.0)),
             }
         )
