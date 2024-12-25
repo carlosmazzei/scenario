@@ -19,11 +19,10 @@ jobs:
           with:
             python-version: "3.12"
             cache: "pip"
-        - run: pip install -r requirements.txt
-
+        - name: "Install dependencies"
+          run: pip install -r requirements.txt
         - name: "Lint"
           run: python3 -m ruff check .
-
         - name: "Format"
           run: python3 -m ruff format . --check
   test:
