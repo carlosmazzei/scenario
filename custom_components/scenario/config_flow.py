@@ -13,7 +13,6 @@ from homeassistant.config_entries import (
 )
 from homeassistant.const import CONF_DELAY, CONF_HOST, CONF_PORT, CONF_PROTOCOL
 from homeassistant.core import callback
-from homeassistant.data_entry_flow import FlowResult
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import selector
 from pyscenario.ifsei import IFSEI, NetworkConfiguration, Protocol
@@ -116,7 +115,7 @@ class ScenarioOptionsFlowHandler(OptionsFlow):
 
     async def async_step_init(
         self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
+    ) -> ConfigFlowResult:
         """Handle options flow."""
         if user_input is not None:
             return self.async_create_entry(
@@ -142,12 +141,12 @@ class ScenarioOptionsFlowHandler(OptionsFlow):
             {
                 vol.Required(
                     CONF_DELAY,
-                    default=send_delay_default,  # type: ignore[reportArgumentType]
+                    default=send_delay_default,
                 ): vol.All(cv.positive_float, vol.Clamp(min=0.1, max=0.5)),
-                vol.Required(IFSEI_CONF_RECONNECT, default=reconnect_default): bool,  # type: ignore[reportArgumentType]
+                vol.Required(IFSEI_CONF_RECONNECT, default=reconnect_default): bool,
                 vol.Required(
                     IFSEI_CONF_RECONNECT_DELAY,
-                    default=reconnect_delay_default,  # type: ignore[reportArgumentType]
+                    default=reconnect_delay_default,
                 ): vol.All(cv.positive_float, vol.Clamp(min=5.0, max=60.0)),
             }
         )
