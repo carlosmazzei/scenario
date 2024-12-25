@@ -4,6 +4,8 @@
 [![License][license-shield]](LICENSE)
 ![Project Maintenance][maintenance-shield]
 [![Community Forum][forum-shield]][forum]
+![Codecov][coverage-shield]
+
 
 A Home Assistant custom integration to monitor and control devices connected using Scenario Automation IFSEI Classic.
 
@@ -115,3 +117,4 @@ If you want to contribute to this project, please read the [Contribution Guideli
 [maintenance-shield]: https://img.shields.io/badge/maintainer-Carlos%20Mazzei-blue.svg?style=for-the-badge
 [releases-shield]: https://img.shields.io/github/release/carlosmazzei/scenario.svg?style=for-the-badge
 [releases]: https://github.com/carlosmazzei/scenario/releases
+[coverage-shield]: https://img.shields.io/codecov/c/github/carlosmazzei/scenario?style=for-the-badge
