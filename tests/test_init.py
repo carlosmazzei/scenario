@@ -43,15 +43,9 @@ async def test_successful_unload(
         result = await async_unload_entry(hass, mock_config_entry)
 
         # Assert
-        if result is False:
-            msg = "Expected successful unload."
-            raise ValueError(msg)
-
+        assert result is True
         mock_ifsei.async_close.assert_called_once()
-
-        if mock_config_entry.entry_id in hass.data[DOMAIN]:
-            msg = "Expected entry to be removed from data."
-            raise ValueError(msg)
+        assert mock_config_entry.entry_id not in hass.data[DOMAIN]
 
 
 @pytest.mark.asyncio
@@ -75,10 +69,7 @@ async def test_unsuccessful_unload(
             raise ValueError(msg)
 
         mock_ifsei.async_close.assert_called_once()
-
-        if mock_config_entry.entry_id not in hass.data[DOMAIN]:
-            msg = "Expected entry to not be removed from data."
-            raise ValueError(msg)
+        assert mock_config_entry.entry_id in hass.data[DOMAIN]
 
 
 @pytest.mark.asyncio
@@ -99,6 +90,4 @@ async def test_unload_entry_exception_handling(
             await async_unload_entry(hass, mock_config_entry)
 
         # Verify data remains
-        if mock_config_entry.entry_id not in hass.data[DOMAIN]:
-            msg = "Expected entry to remain in data after exception"
-            raise ValueError(msg)
+        assert mock_config_entry.entry_id in hass.data[DOMAIN]
