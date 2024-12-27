@@ -63,6 +63,11 @@ class ScenarioCover(ScenarioUpdatableEntity, CoverEntity):
         self._device.add_subscriber(self.async_update_callback)
 
     @property
+    def ifsei(self) -> IFSEI:
+        """Return the IFSEI controller."""
+        return self._ifsei
+
+    @property
     def is_closed(self) -> bool | None:
         """Return true if cover is closed."""
         return self._attr_is_closed
