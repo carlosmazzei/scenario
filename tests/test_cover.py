@@ -25,9 +25,9 @@ def mock_cover() -> MagicMock:
     """Create a mock cover fixture."""
     cover = MagicMock()
     cover.unique_id = "test_cover_unique_id"
-    cover.up = "up_command"
-    cover.down = "down_command"
-    cover.stop = "stop_command"
+    cover.up = "0002"
+    cover.down = "0003"
+    cover.stop = "0004"
     return cover
 
 
@@ -57,7 +57,7 @@ async def test_async_open_cover(scenario_cover: ScenarioCover) -> None:
     """Test opening the cover with a valid unique_id."""
     await scenario_cover.async_open_cover()
     scenario_cover.ifsei.async_update_cover_state.assert_called_once_with(
-        scenario_cover.unique_id, scenario_cover.up
+        scenario_cover.unique_id, int(scenario_cover.up)
     )
 
 
@@ -66,7 +66,7 @@ async def test_async_close_cover(scenario_cover: ScenarioCover) -> None:
     """Test closing the cover with a valid unique_id."""
     await scenario_cover.async_close_cover()
     scenario_cover.ifsei.async_update_cover_state.assert_called_once_with(
-        scenario_cover.unique_id, scenario_cover.down
+        scenario_cover.unique_id, int(scenario_cover.down)
     )
 
 
@@ -75,7 +75,7 @@ async def test_async_stop_cover(scenario_cover: ScenarioCover) -> None:
     """Test stopping the cover with a valid unique_id."""
     await scenario_cover.async_stop_cover()
     scenario_cover.ifsei.async_update_cover_state.assert_called_once_with(
-        scenario_cover.unique_id, scenario_cover.stop
+        scenario_cover.unique_id, int(scenario_cover.stop)
     )
 
 
@@ -111,7 +111,7 @@ async def test_missing_unique_id_for_commands(
 async def test_async_will_remove_from_hass(scenario_cover: ScenarioCover) -> None:
     """Test removing the entity from hass."""
     await scenario_cover.async_will_remove_from_hass()
-    scenario_cover._device.remove_subscriber.assert_called_once()  # noqa: SLF001
+    scenario_cover._device.remove_subscriber.assert_called_once()
 
 
 def test_properties(scenario_cover: ScenarioCover) -> None:
@@ -169,8 +169,8 @@ def test_update_callback_stop_active(scenario_cover: ScenarioCover) -> None:
     'scene active' or 'scene inactive' -> set is_closing/is_opening = False.
     """
     # Force is_closing/is_opening to True for test
-    scenario_cover._attr_is_closing = True  # noqa: SLF001
-    scenario_cover._attr_is_opening = True  # noqa: SLF001
+    scenario_cover._attr_is_closing = True
+    scenario_cover._attr_is_opening = True
 
     scenario_cover.async_update_callback(
         **{
@@ -179,11 +179,11 @@ def test_update_callback_stop_active(scenario_cover: ScenarioCover) -> None:
             IFSEI_ATTR_STATE: IFSEI_ATTR_SCENE_ACTIVE,
         }
     )
-    assert scenario_cover._attr_is_closing is False  # noqa: SLF001
-    assert scenario_cover._attr_is_opening is False  # noqa: SLF001
+    assert scenario_cover._attr_is_closing is False
+    assert scenario_cover._attr_is_opening is False
 
-    scenario_cover._attr_is_closing = True  # noqa: SLF001
-    scenario_cover._attr_is_opening = True  # noqa: SLF001
+    scenario_cover._attr_is_closing = True
+    scenario_cover._attr_is_opening = True
 
     scenario_cover.async_update_callback(
         **{
@@ -192,8 +192,8 @@ def test_update_callback_stop_active(scenario_cover: ScenarioCover) -> None:
             IFSEI_ATTR_STATE: IFSEI_ATTR_SCENE_INACTIVE,
         }
     )
-    assert scenario_cover._attr_is_closing is False  # noqa: SLF001
-    assert scenario_cover._attr_is_opening is False  # noqa: SLF001
+    assert scenario_cover._attr_is_closing is False
+    assert scenario_cover._attr_is_opening is False
 
 
 @pytest.mark.asyncio
@@ -229,4 +229,4 @@ async def test_async_setup_entry(hass: HomeAssistant, mock_ifsei: MagicMock) -> 
         assert isinstance(cover_entity, ScenarioCover)
         assert cover_entity.ifsei == mock_ifsei
         # Each cover entity's _device should be in the covers list
-        assert cover_entity._device in covers  # noqa: SLF001
+        assert cover_entity._device in covers

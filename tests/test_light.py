@@ -54,7 +54,7 @@ async def light_entity(
     light = ScenarioLight(mock_light, mock_ifsei)
     light.hass = hass
     light.entity_id = "light.test_light"
-    light._attr_unique_id = "test_light_unique_id"  # noqa: SLF001
+    light._attr_unique_id = "test_light_unique_id"
     light.platform = Mock()
     light.platform.platform_name = "light"
 
@@ -168,20 +168,20 @@ async def test_update_callback(
     assert light_entity.available is True
 
     # Set initial brightness to 0
-    light_entity._attr_brightness = 0  # noqa: SLF001
+    light_entity._attr_brightness = 0
     await light_entity.async_update_ha_state(force_refresh=True)
     await hass.async_block_till_done()
     assert light_entity.brightness == 0
 
     # Test brightness update
-    light_entity._attr_brightness = to_hass_level(50)  # Set directly  # noqa: SLF001
+    light_entity._attr_brightness = to_hass_level(50)  # Set directly
     light_entity.async_update_callback(brightness=50)  # This updates state
     await hass.async_block_till_done()
     assert light_entity.brightness == to_hass_level(50)
 
     # Test availability changes
     mock_ifsei.is_connected = False
-    light_entity._attr_available = True  # noqa: SLF001
+    light_entity._attr_available = True
     await light_entity.async_update_ha_state(force_refresh=True)
     await hass.async_block_till_done()
 
@@ -191,7 +191,7 @@ async def test_update_callback(
 
     # Test RGBW update with availability restore
     mock_ifsei.is_connected = True
-    light_entity._attr_available = True  # noqa: SLF001
+    light_entity._attr_available = True
 
     # Set expected values
     hass_red = to_hass_level(100)
@@ -201,7 +201,7 @@ async def test_update_callback(
     expected_rgbw = (hass_red, hass_green, hass_blue, hass_white)
 
     # Set initial RGBW values
-    light_entity._attr_rgbw_color = expected_rgbw  # noqa: SLF001
+    light_entity._attr_rgbw_color = expected_rgbw
     await light_entity.async_update_ha_state(force_refresh=True)
     await hass.async_block_till_done()
 
@@ -236,27 +236,27 @@ async def test_light_state(hass: HomeAssistant, light_entity: ScenarioLight) -> 
     light_entity.platform.platform_name = "light"
 
     # Test initial state (should be off)
-    light_entity._attr_brightness = 0  # noqa: SLF001
-    light_entity._attr_rgbw_color = (0, 0, 0, 0)  # noqa: SLF001
+    light_entity._attr_brightness = 0
+    light_entity._attr_rgbw_color = (0, 0, 0, 0)
     await light_entity.async_update_ha_state(force_refresh=True)
     await hass.async_block_till_done()
     assert light_entity.is_on is False
 
     # Set some brightness and test state
-    light_entity._attr_brightness = to_hass_level(50)  # noqa: SLF001
-    light_entity._attr_available = True  # noqa: SLF001
+    light_entity._attr_brightness = to_hass_level(50)
+    light_entity._attr_available = True
     await light_entity.async_update_ha_state(force_refresh=True)
     await hass.async_block_till_done()
     assert light_entity.is_on is True
 
     # Test with RGB values
-    light_entity._attr_brightness = 0  # noqa: SLF001
-    light_entity._attr_rgbw_color = (0, 0, 0, 0)  # noqa: SLF001
+    light_entity._attr_brightness = 0
+    light_entity._attr_rgbw_color = (0, 0, 0, 0)
     await light_entity.async_update_ha_state(force_refresh=True)
     await hass.async_block_till_done()
     assert light_entity.is_on is False
 
-    light_entity._attr_rgbw_color = (255, 0, 0, 0)  # noqa: SLF001
+    light_entity._attr_rgbw_color = (255, 0, 0, 0)
     await light_entity.async_update_ha_state(force_refresh=True)
     await hass.async_block_till_done()
     assert light_entity.is_on is True
@@ -265,7 +265,7 @@ async def test_light_state(hass: HomeAssistant, light_entity: ScenarioLight) -> 
 async def test_remove_from_hass(light_entity: ScenarioLight) -> None:
     """Test removing light from Home Assistant."""
     await light_entity.async_will_remove_from_hass()
-    assert light_entity._device.remove_subscriber.called  # noqa: SLF001
+    assert light_entity._device.remove_subscriber.called
 
 
 async def test_async_setup_entry(hass: HomeAssistant) -> None:
