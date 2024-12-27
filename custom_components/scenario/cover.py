@@ -63,6 +63,11 @@ class ScenarioCover(ScenarioUpdatableEntity, CoverEntity):
         self._device.add_subscriber(self.async_update_callback)
 
     @property
+    def ifsei(self) -> IFSEI:
+        """Return the IFSEI controller."""
+        return self._ifsei
+
+    @property
     def is_closed(self) -> bool | None:
         """Return true if cover is closed."""
         return self._attr_is_closed
@@ -70,21 +75,21 @@ class ScenarioCover(ScenarioUpdatableEntity, CoverEntity):
     async def async_open_cover(self) -> None:
         """Open the cover."""
         if self.unique_id is not None:
-            await self._ifsei.async_update_cover_state(self.unique_id, self.up)
+            await self._ifsei.async_update_cover_state(self.unique_id, int(self.up))
         else:
             _LOGGER.debug("Missing device unique id")
 
     async def async_close_cover(self) -> None:
         """Close the cover."""
         if self.unique_id is not None:
-            await self._ifsei.async_update_cover_state(self.unique_id, self.down)
+            await self._ifsei.async_update_cover_state(self.unique_id, int(self.down))
         else:
             _LOGGER.debug("Missing device unique id")
 
     async def async_stop_cover(self) -> None:
         """Stop the cover."""
         if self.unique_id is not None:
-            await self._ifsei.async_update_cover_state(self.unique_id, self.stop)
+            await self._ifsei.async_update_cover_state(self.unique_id, int(self.stop))
         else:
             _LOGGER.debug("Missing device unique id")
 
