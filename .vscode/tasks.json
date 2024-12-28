@@ -22,7 +22,7 @@
         {
             "label": "Run tests",
             "type": "shell",
-            "command": "pytest --cov-report term",
+            "command": "pytest --cov-report term && mutmut run",
             "group": {
                 "kind": "test",
                 "isDefault": true

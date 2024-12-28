@@ -1,6 +1,6 @@
 <!-- If this pull request fixes an issue, add "Fixes #NNN" with the issue number. -->
 
-# **Explain how this PR changes pyscenario**
+# **Explain how this PR changes scenario**
 
 [Description of the PR changes]
 
@@ -15,4 +15,3 @@
 - [ ] I have updated the documentation accordingly.
 - [ ] I have added tests to cover my changes.
 - [ ] All new and existing tests passed.
-  
