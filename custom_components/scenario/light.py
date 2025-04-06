@@ -30,7 +30,7 @@ _LOGGER = logging.getLogger(__name__)
 
 def to_scenario_level(level: int) -> int:
     """Convert the given Home Assistant light level (0-255) to Scenario (0-100)."""
-    return int(round((level * 100) / 255))
+    return round((level * 100) / 255)
 
 
 def to_hass_level(level: int) -> int:
@@ -166,6 +166,6 @@ class ScenarioLight(ScenarioUpdatableEntity, LightEntity):
                 new_colors[3] = to_hass_level(brightness)
 
             # Set the updated colors
-            self._attr_rgbw_color = cast(tuple[int, int, int, int], new_colors)
+            self._attr_rgbw_color = cast("tuple[int, int, int, int]", new_colors)
 
         self.async_write_ha_state()
