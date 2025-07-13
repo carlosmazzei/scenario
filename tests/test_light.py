@@ -18,6 +18,7 @@ from custom_components.scenario.const import (
 )
 from custom_components.scenario.light import (
     ScenarioLight,
+    async_setup_entry,
     to_hass_level,
     to_scenario_level,
 )
@@ -270,8 +271,6 @@ async def test_remove_from_hass(light_entity: ScenarioLight) -> None:
 
 async def test_async_setup_entry(hass: HomeAssistant) -> None:
     """Test setting up entities from a config entry."""
-    from custom_components.scenario.light import async_setup_entry
-
     mock_light = Mock()
     mock_ifsei = Mock()
     mock_entry = Mock(spec=ConfigEntry)
