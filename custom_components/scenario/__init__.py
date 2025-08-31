@@ -74,7 +74,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         entry_data[IFSEI_CONF_RECONNECT_DELAY],
     )
     ifsei = IFSEI(network_config=network_configuration)
-    ifsei.set_send_delay(entry_data[CONF_DELAY])
 
     try:
         file_path = Path(hass.config.path(), YAML_DEVICES).absolute().as_posix()
@@ -96,6 +95,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         raise ConfigEntryNotReady(msg, host, e) from e
 
     _LOGGER.debug("Connected to host: %s:%s, protocol: %s", host, port, protocol)
+    ifsei.set_send_delay(entry_data[CONF_DELAY])
 
     if not entry.unique_id:
         hass.config_entries.async_update_entry(entry, unique_id=ifsei.get_device_id())
