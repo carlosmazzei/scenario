@@ -1,6 +1,6 @@
 """Unit tests for the scenario integration init."""
 
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, call, patch
 
 import pytest
 import voluptuous as vol
@@ -17,6 +17,7 @@ from custom_components.scenario import (
 from custom_components.scenario.const import (
     CONTROLLER_ENTRY,
     COVERS_ENTRY,
+    DEFAULT_SEND_DELAY,
     DOMAIN,
     IFSEI_CONF_RECONNECT,
     IFSEI_CONF_RECONNECT_DELAY,
@@ -105,6 +106,10 @@ async def test_async_setup_entry_success(
     assert mock_config_entry.state == ConfigEntryState.LOADED
     mock_ifsei.load_devices.assert_called_once_with("/fake/path")
     mock_ifsei.async_connect.assert_called_once()
+    mock_ifsei.set_send_delay.assert_called_once_with(DEFAULT_SEND_DELAY)
+    connect_index = mock_ifsei.mock_calls.index(call.async_connect())
+    delay_index = mock_ifsei.mock_calls.index(call.set_send_delay(DEFAULT_SEND_DELAY))
+    assert connect_index < delay_index
 
     entry_data = hass.data[DOMAIN][mock_config_entry.entry_id]
     assert CONTROLLER_ENTRY in entry_data
