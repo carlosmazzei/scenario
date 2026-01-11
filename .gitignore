@@ -15,6 +15,7 @@ coverage.xml
 .ruff_cache
 .DS_Store
 .venv
+.claude
 
 
 # Home Assistant configuration
