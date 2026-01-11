@@ -11,9 +11,9 @@
   "iot_class": "local_push",
   "issue_tracker": "https://github.com/carlosmazzei/scenario/issues",
   "requirements": [
-    "pyscenario==0.1.9"
+    "pyscenario==0.1.10"
   ],
   "ssdp": [],
-  "version": "0.1.7",
+  "version": "0.1.9",
   "zeroconf": []
 }
