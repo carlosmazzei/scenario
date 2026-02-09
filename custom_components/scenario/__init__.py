@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 import voluptuous as vol
@@ -18,7 +19,7 @@ from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity import Entity
-from pyscenario.const import COVER_DEVICES, IFSEI_ATTR_SEND_DELAY, LIGHT_DEVICES
+from pyscenario.const import COVER_DEVICES, LIGHT_DEVICES
 from pyscenario.ifsei import IFSEI, NetworkConfiguration, Protocol
 
 from .const import (
@@ -38,7 +39,6 @@ from .const import (
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
     from pyscenario.manager import Device
-from pathlib import Path
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -111,10 +111,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         entry: ConfigEntry,
     ) -> None:
         """Handle options update."""
-        entry_data[CONF_DELAY] = entry.options.get(CONF_DELAY, IFSEI_ATTR_SEND_DELAY)
-        entry_data[IFSEI_CONF_RECONNECT] = entry.options.get(IFSEI_CONF_RECONNECT, True)
+        entry_data[CONF_DELAY] = entry.options.get(CONF_DELAY, DEFAULT_SEND_DELAY)
+        entry_data[IFSEI_CONF_RECONNECT] = entry.options.get(
+            IFSEI_CONF_RECONNECT, DEFAULT_RECONNECT
+        )
         entry_data[IFSEI_CONF_RECONNECT_DELAY] = entry.options.get(
-            IFSEI_CONF_RECONNECT_DELAY, 5
+            IFSEI_CONF_RECONNECT_DELAY, DEFAULT_RECONNECT_DELAY
         )
         ifsei.set_send_delay(entry_data[CONF_DELAY])
         ifsei.set_reconnect_options(
@@ -140,7 +142,6 @@ def _async_register_scenario_device(
         manufacturer=MANUFACTURER,
         identifiers={(DOMAIN, ifsei.get_device_id())},
         model="IFSEI Classic",
-        via_device=(DOMAIN, ifsei.get_device_id()),
         configuration_url="https://scenario.ind.br",
     )
 
@@ -149,7 +150,7 @@ def _async_register_scenario_device(
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload the bridge from a config entry."""
-    entry_data = hass.data[DOMAIN].setdefault(entry.entry_id, {})
+    entry_data = hass.data[DOMAIN][entry.entry_id]
     ifsei: IFSEI = entry_data[CONTROLLER_ENTRY]
     await ifsei.async_close()
     if unload_ok := await hass.config_entries.async_unload_platforms(entry, PLATFORMS):
@@ -176,7 +177,7 @@ class ScenarioUpdatableEntity(Entity):
             identifiers={(DOMAIN, str(device.unique_id))},
             manufacturer=MANUFACTURER,
             name=self._attr_name,
-            via_device=(DOMAIN, str(device.unique_id)),
+            via_device=(DOMAIN, self._device_id),
             suggested_area=device.zone,
         )
         self._attr_device_info = info

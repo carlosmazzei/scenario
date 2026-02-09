@@ -414,6 +414,6 @@ async def test_scenario_updatable_entity_device_info() -> None:
     assert device_info is not None
 
     assert device_info.get("identifiers") == {("scenario", "test_device_unique_id")}
-    assert device_info.get("via_device") == ("scenario", "test_device_unique_id")
+    assert device_info.get("via_device") == ("scenario", "ifsei_device_id")
     assert device_info.get("name") == "Test Device"
     assert device_info.get("manufacturer") == entity._device_manufacturer

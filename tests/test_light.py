@@ -227,7 +227,7 @@ def test_level_conversion() -> None:
     # Test Scenario to Home Assistant conversion
     assert to_hass_level(0) == 0
     assert to_hass_level(100) == 255  # noqa: PLR2004
-    assert to_hass_level(50) == 127  # noqa: PLR2004
+    assert to_hass_level(50) == 128  # noqa: PLR2004
 
 
 async def test_light_state(hass: HomeAssistant, light_entity: ScenarioLight) -> None:
