@@ -1,7 +1,7 @@
 """Platform for Scenario Lights."""
 
 import logging
-from typing import Any, cast
+from typing import Any
 
 from homeassistant.components.light import (
     ATTR_BRIGHTNESS,
@@ -35,7 +35,7 @@ def to_scenario_level(level: int) -> int:
 
 def to_hass_level(level: int) -> int:
     """Convert the given Scenario (0-100) light level to Home Assistant (0-255)."""
-    return int((level * 255) // 100)
+    return round((level * 255) / 100)
 
 
 async def async_setup_entry(
@@ -78,9 +78,7 @@ class ScenarioLight(ScenarioUpdatableEntity, LightEntity):
     def is_on(self) -> bool:
         """Return whether this light is on or off."""
         if self._attr_brightness is not None and self._attr_rgbw_color is not None:
-            return (
-                self._attr_brightness > 0 or any(self._attr_rgbw_color) > 0
-            ) and self._attr_available
+            return self._attr_brightness > 0 or any(self._attr_rgbw_color)
         return False
 
     @property
@@ -166,6 +164,6 @@ class ScenarioLight(ScenarioUpdatableEntity, LightEntity):
                 new_colors[3] = to_hass_level(brightness)
 
             # Set the updated colors
-            self._attr_rgbw_color = cast("tuple[int, int, int, int]", new_colors)
+            self._attr_rgbw_color = tuple(new_colors)
 
         self.async_write_ha_state()

@@ -82,6 +82,7 @@ class ScenarioConfigFlow(ConfigFlow, domain=DOMAIN):
                     )
                 )
                 controller_unique_id = ifsei.get_device_id()
+                await self.async_set_unique_id(controller_unique_id)
                 self._abort_if_unique_id_configured()
                 return self.async_create_entry(
                     title=controller_unique_id,
