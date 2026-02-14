@@ -16,6 +16,7 @@ coverage.xml
 .DS_Store
 .venv
 .claude
+.mutmut-cache
 
 
 # Home Assistant configuration
