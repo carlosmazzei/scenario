@@ -76,7 +76,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     ifsei = IFSEI(network_config=network_configuration)
 
     try:
-        file_path = Path(hass.config.path(), YAML_DEVICES).absolute().as_posix()
+        file_path = Path(hass.config.path(), YAML_DEVICES).as_posix()
         _LOGGER.info("Load devices from file, config path %s", file_path)
         await hass.async_add_executor_job(ifsei.load_devices, file_path)
         _LOGGER.info("Devices loaded")

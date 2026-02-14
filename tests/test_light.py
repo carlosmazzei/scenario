@@ -1,6 +1,6 @@
 """Tests for the Scenario Light platform."""
 
-from unittest.mock import AsyncMock, Mock
+from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 from homeassistant.components.light import (
@@ -10,6 +10,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from pyscenario.const import IFSEI_ATTR_RED
 
 from custom_components.scenario.const import (
     CONTROLLER_ENTRY,
@@ -22,6 +23,10 @@ from custom_components.scenario.light import (
     to_hass_level,
     to_scenario_level,
 )
+
+# Test constants for RGBW color values
+UNCHANGED_GREEN_VALUE = 50
+UNCHANGED_BLUE_VALUE = 25
 
 
 @pytest.fixture
@@ -284,3 +289,97 @@ async def test_async_setup_entry(hass: HomeAssistant) -> None:
     await async_setup_entry(hass, mock_entry, async_add_entities)
 
     async_add_entities.assert_called_once()
+
+
+async def test_update_callback_writes_state(light_entity: ScenarioLight) -> None:
+    """Test that update callback calls async_write_ha_state."""
+    with patch.object(light_entity, "async_write_ha_state") as mock_write:
+        light_entity.async_update_callback(brightness=50)
+        mock_write.assert_called_once()
+
+
+async def test_update_callback_brightness_when_unavailable(
+    light_entity: ScenarioLight,
+) -> None:
+    """Test that brightness is not updated when device is unavailable."""
+    light_entity._attr_available = False
+    initial_brightness = light_entity.brightness
+
+    with patch.object(light_entity, "async_write_ha_state") as mock_write:
+        light_entity.async_update_callback(brightness=50)
+        # State write still called but brightness should not change
+        assert light_entity.brightness == initial_brightness
+        mock_write.assert_called_once()
+
+
+async def test_update_callback_rgbw_partial_colors(
+    light_entity: ScenarioLight,
+) -> None:
+    """Test RGBW update with partial color values."""
+    # Ensure entity is available and in RGBW mode
+    light_entity._attr_available = True
+    light_entity._attr_color_mode = ColorMode.RGBW
+    light_entity._attr_rgbw_color = (100, 50, 25, 10)
+
+    with patch.object(light_entity, "async_write_ha_state") as mock_write:
+        # Update only red channel - use the correct constant name
+        kwargs = {IFSEI_ATTR_RED: 75}
+        light_entity.async_update_callback(**kwargs)
+        assert light_entity.rgbw_color[0] == to_hass_level(75)
+        assert light_entity.rgbw_color[1] == UNCHANGED_GREEN_VALUE
+        assert light_entity.rgbw_color[2] == UNCHANGED_BLUE_VALUE
+        mock_write.assert_called_once()
+
+
+async def test_set_brightness_with_no_device_manager(
+    light_entity: ScenarioLight, mock_ifsei: Mock
+) -> None:
+    """Test _async_set_brightness when device_manager is None."""
+    mock_ifsei.device_manager = None
+    await light_entity._async_set_brightness(50)
+    # Should not crash, but also should not call async_update_light_state
+    mock_ifsei.async_update_light_state.assert_not_called()
+
+
+async def test_set_brightness_with_no_unique_id(
+    light_entity: ScenarioLight, mock_ifsei: Mock
+) -> None:
+    """Test _async_set_brightness when unique_id is None."""
+    light_entity._attr_unique_id = None
+    await light_entity._async_set_brightness(50)
+    # Should not crash, but also should not call async_update_light_state
+    mock_ifsei.async_update_light_state.assert_not_called()
+
+
+async def test_turn_on_with_rgbw_but_no_brightness(
+    hass: HomeAssistant, light_entity: ScenarioLight, mock_ifsei: Mock
+) -> None:
+    """Test turning on with RGBW color but no brightness specified."""
+    await light_entity.async_turn_on(rgbw_color=(255, 128, 0, 64))
+    await hass.async_block_till_done()
+
+    mock_ifsei.async_update_light_state.assert_called_once()
+    call_args = mock_ifsei.async_update_light_state.call_args[0][1]
+    # Should use rgbw_color values + default brightness (255 -> 100)
+    assert call_args[0] == to_scenario_level(255)  # red
+    assert call_args[1] == to_scenario_level(128)  # green
+    assert call_args[2] == to_scenario_level(0)  # blue
+    assert call_args[3] == to_scenario_level(64)  # white
+
+
+async def test_brightness_property_none_handling(
+    mock_light: Mock, mock_ifsei: Mock
+) -> None:
+    """Test brightness property when _attr_brightness is None."""
+    light = ScenarioLight(mock_light, mock_ifsei)
+    light._attr_brightness = None
+    assert light.brightness == 0
+
+
+async def test_is_on_with_none_values(mock_light: Mock, mock_ifsei: Mock) -> None:
+    """Test is_on property handles None values gracefully."""
+    light = ScenarioLight(mock_light, mock_ifsei)
+    light._attr_brightness = None
+    light._attr_rgbw_color = None
+    # Should not crash and should return False
+    assert light.is_on is False

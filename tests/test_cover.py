@@ -19,6 +19,11 @@ from pyscenario.const import (
 from custom_components.scenario.const import CONTROLLER_ENTRY, COVERS_ENTRY, DOMAIN
 from custom_components.scenario.cover import ScenarioCover, async_setup_entry
 
+# Test constants for cover command values
+EXPECTED_UP_VALUE = 2
+EXPECTED_DOWN_VALUE = 3
+EXPECTED_STOP_VALUE = 4
+
 
 @pytest.fixture
 def mock_cover() -> MagicMock:
@@ -59,6 +64,10 @@ async def test_async_open_cover(scenario_cover: ScenarioCover) -> None:
     scenario_cover.ifsei.async_update_cover_state.assert_called_once_with(
         scenario_cover.unique_id, int(scenario_cover.up)
     )
+    # Verify the exact values
+    call_args = scenario_cover.ifsei.async_update_cover_state.call_args
+    assert call_args[0][0] == "test_cover_unique_id"
+    assert call_args[0][1] == EXPECTED_UP_VALUE
 
 
 @pytest.mark.asyncio
@@ -68,6 +77,10 @@ async def test_async_close_cover(scenario_cover: ScenarioCover) -> None:
     scenario_cover.ifsei.async_update_cover_state.assert_called_once_with(
         scenario_cover.unique_id, int(scenario_cover.down)
     )
+    # Verify the exact values
+    call_args = scenario_cover.ifsei.async_update_cover_state.call_args
+    assert call_args[0][0] == "test_cover_unique_id"
+    assert call_args[0][1] == EXPECTED_DOWN_VALUE
 
 
 @pytest.mark.asyncio
@@ -77,6 +90,10 @@ async def test_async_stop_cover(scenario_cover: ScenarioCover) -> None:
     scenario_cover.ifsei.async_update_cover_state.assert_called_once_with(
         scenario_cover.unique_id, int(scenario_cover.stop)
     )
+    # Verify the exact values
+    call_args = scenario_cover.ifsei.async_update_cover_state.call_args
+    assert call_args[0][0] == "test_cover_unique_id"
+    assert call_args[0][1] == EXPECTED_STOP_VALUE
 
 
 @pytest.mark.asyncio
@@ -123,6 +140,11 @@ def test_properties(scenario_cover: ScenarioCover) -> None:
     assert scenario_cover.assumed_state is True
     # Initially True, as set in __init__:
     assert scenario_cover.is_closed is True
+    # Verify individual properties
+    assert scenario_cover.up == "0002"
+    assert scenario_cover.down == "0003"
+    assert scenario_cover.stop == "0004"
+    assert scenario_cover.unique_id == "test_cover_unique_id"
 
 
 def test_update_callback_down_active(scenario_cover: ScenarioCover) -> None:
@@ -132,15 +154,17 @@ def test_update_callback_down_active(scenario_cover: ScenarioCover) -> None:
     Test update callback when the cover command is 'down'
     and state is 'scene active' -> sets is_closed to True.
     """
-    scenario_cover.async_update_callback(
-        **{
-            IFSEI_ATTR_AVAILABLE: True,
-            IFSEI_ATTR_COMMAND: IFSEI_COVER_DOWN,
-            IFSEI_ATTR_STATE: IFSEI_ATTR_SCENE_ACTIVE,
-        }
-    )
-    assert scenario_cover.is_closed is True
-    assert scenario_cover.available is True
+    with patch.object(scenario_cover, "async_write_ha_state") as mock_write_state:
+        scenario_cover.async_update_callback(
+            **{
+                IFSEI_ATTR_AVAILABLE: True,
+                IFSEI_ATTR_COMMAND: IFSEI_COVER_DOWN,
+                IFSEI_ATTR_STATE: IFSEI_ATTR_SCENE_ACTIVE,
+            }
+        )
+        assert scenario_cover.is_closed is True
+        assert scenario_cover.available is True
+        mock_write_state.assert_called_once()
 
 
 def test_update_callback_up_active(scenario_cover: ScenarioCover) -> None:
@@ -150,15 +174,17 @@ def test_update_callback_up_active(scenario_cover: ScenarioCover) -> None:
     Test update callback when the cover command is 'up'
     and state is 'scene active' -> sets is_closed to False.
     """
-    scenario_cover.async_update_callback(
-        **{
-            IFSEI_ATTR_AVAILABLE: True,
-            IFSEI_ATTR_COMMAND: IFSEI_COVER_UP,
-            IFSEI_ATTR_STATE: IFSEI_ATTR_SCENE_ACTIVE,
-        }
-    )
-    assert scenario_cover.is_closed is False
-    assert scenario_cover.available is True
+    with patch.object(scenario_cover, "async_write_ha_state") as mock_write_state:
+        scenario_cover.async_update_callback(
+            **{
+                IFSEI_ATTR_AVAILABLE: True,
+                IFSEI_ATTR_COMMAND: IFSEI_COVER_UP,
+                IFSEI_ATTR_STATE: IFSEI_ATTR_SCENE_ACTIVE,
+            }
+        )
+        assert scenario_cover.is_closed is False
+        assert scenario_cover.available is True
+        mock_write_state.assert_called_once()
 
 
 def test_update_callback_stop_active(scenario_cover: ScenarioCover) -> None:
@@ -172,28 +198,64 @@ def test_update_callback_stop_active(scenario_cover: ScenarioCover) -> None:
     scenario_cover._attr_is_closing = True
     scenario_cover._attr_is_opening = True
 
-    scenario_cover.async_update_callback(
-        **{
-            IFSEI_ATTR_AVAILABLE: True,
-            IFSEI_ATTR_COMMAND: IFSEI_COVER_STOP,
-            IFSEI_ATTR_STATE: IFSEI_ATTR_SCENE_ACTIVE,
-        }
-    )
-    assert scenario_cover._attr_is_closing is False
-    assert scenario_cover._attr_is_opening is False
+    with patch.object(scenario_cover, "async_write_ha_state") as mock_write_state:
+        scenario_cover.async_update_callback(
+            **{
+                IFSEI_ATTR_AVAILABLE: True,
+                IFSEI_ATTR_COMMAND: IFSEI_COVER_STOP,
+                IFSEI_ATTR_STATE: IFSEI_ATTR_SCENE_ACTIVE,
+            }
+        )
+        assert scenario_cover._attr_is_closing is False
+        assert scenario_cover._attr_is_opening is False
+        mock_write_state.assert_called_once()
 
     scenario_cover._attr_is_closing = True
     scenario_cover._attr_is_opening = True
 
-    scenario_cover.async_update_callback(
-        **{
-            IFSEI_ATTR_AVAILABLE: True,
-            IFSEI_ATTR_COMMAND: IFSEI_COVER_STOP,
-            IFSEI_ATTR_STATE: IFSEI_ATTR_SCENE_INACTIVE,
-        }
-    )
-    assert scenario_cover._attr_is_closing is False
-    assert scenario_cover._attr_is_opening is False
+    with patch.object(scenario_cover, "async_write_ha_state") as mock_write_state:
+        scenario_cover.async_update_callback(
+            **{
+                IFSEI_ATTR_AVAILABLE: True,
+                IFSEI_ATTR_COMMAND: IFSEI_COVER_STOP,
+                IFSEI_ATTR_STATE: IFSEI_ATTR_SCENE_INACTIVE,
+            }
+        )
+        assert scenario_cover._attr_is_closing is False
+        assert scenario_cover._attr_is_opening is False
+        mock_write_state.assert_called_once()
+
+
+def test_update_callback_only_availability(scenario_cover: ScenarioCover) -> None:
+    """Test update callback when only availability changes."""
+    with patch.object(scenario_cover, "async_write_ha_state") as mock_write_state:
+        scenario_cover.async_update_callback(**{IFSEI_ATTR_AVAILABLE: False})
+        # Note: _attr_available is updated but available property uses _ifsei
+        assert scenario_cover._attr_available is False
+        mock_write_state.assert_called_once()
+
+
+def test_update_callback_none_values(scenario_cover: ScenarioCover) -> None:
+    """Test update callback with None values doesn't change state."""
+    initial_closed_state = scenario_cover.is_closed
+    with patch.object(scenario_cover, "async_write_ha_state") as mock_write_state:
+        scenario_cover.async_update_callback(
+            **{
+                IFSEI_ATTR_COMMAND: None,
+                IFSEI_ATTR_STATE: None,
+            }
+        )
+        assert scenario_cover.is_closed == initial_closed_state
+        mock_write_state.assert_called_once()
+
+
+def test_update_callback_command_without_state(scenario_cover: ScenarioCover) -> None:
+    """Test update callback with command but no state."""
+    initial_closed_state = scenario_cover.is_closed
+    with patch.object(scenario_cover, "async_write_ha_state") as mock_write_state:
+        scenario_cover.async_update_callback(**{IFSEI_ATTR_COMMAND: IFSEI_COVER_DOWN})
+        assert scenario_cover.is_closed == initial_closed_state
+        mock_write_state.assert_called_once()
 
 
 @pytest.mark.asyncio
