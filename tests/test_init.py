@@ -96,9 +96,7 @@ async def test_async_setup_entry_success(
         ) as mock_forward,
     ):
         # Avoid real file usage
-        mock_path.return_value.absolute.return_value.as_posix.return_value = (
-            "/fake/path"
-        )
+        mock_path.return_value.as_posix.return_value = "/fake/path"
 
         await hass.config_entries.async_setup(mock_config_entry.entry_id)
         await hass.async_block_till_done()
@@ -417,3 +415,55 @@ async def test_scenario_updatable_entity_device_info() -> None:
     assert device_info.get("via_device") == ("scenario", "ifsei_device_id")
     assert device_info.get("name") == "Test Device"
     assert device_info.get("manufacturer") == entity._device_manufacturer
+
+
+@pytest.mark.asyncio
+async def test_scenario_updatable_entity_initialization() -> None:
+    """Test that all attributes are properly set during initialization."""
+    device = MagicMock(spec=Device)
+    device.name = "Test Device"
+    device.unique_id = "test_device_unique_id"
+    device.zone = "Living Room"
+
+    mock_ifsei = MagicMock(spec=IFSEI)
+    mock_ifsei.is_connected = True
+    mock_ifsei.name = "Scenario IFSEI"
+    mock_ifsei.get_device_id.return_value = "ifsei_device_id"
+
+    entity = ScenarioUpdatableEntity(device, mock_ifsei)
+
+    # Verify all instance variables are set
+    assert entity._ifsei == mock_ifsei
+    assert entity._device == device
+    assert entity.name == "Test Device"
+    assert entity.available
+    assert entity.unique_id == "test_device_unique_id"
+    assert entity._device_name == "Scenario IFSEI"
+    assert entity._device_id == "ifsei_device_id"
+    assert entity.should_poll is False
+
+    # Verify device info structure
+    device_info = entity.device_info
+    assert device_info.get("identifiers") == {("scenario", "test_device_unique_id")}
+    assert device_info.get("via_device") == ("scenario", "ifsei_device_id")
+    assert device_info.get("name") == "Test Device"
+    assert device_info.get("suggested_area") == "Living Room"
+
+
+@pytest.mark.asyncio
+async def test_scenario_updatable_entity_with_disconnected_ifsei() -> None:
+    """Test entity initialization when IFSEI is disconnected."""
+    device = MagicMock(spec=Device)
+    device.name = "Test Device"
+    device.unique_id = "test_device_unique_id"
+    device.zone = "Test Zone"
+
+    mock_ifsei = MagicMock(spec=IFSEI)
+    mock_ifsei.is_connected = False
+    mock_ifsei.name = "Scenario IFSEI"
+    mock_ifsei.get_device_id.return_value = "ifsei_device_id"
+
+    entity = ScenarioUpdatableEntity(device, mock_ifsei)
+
+    # Entity should reflect that IFSEI is not connected
+    assert entity.available is False
