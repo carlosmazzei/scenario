@@ -1,6 +1,6 @@
 pytest>=8.3.3
 pytest-asyncio>=0.24.0
 pytest-cov>=6.0.0
-pytest-homeassistant-custom-component>=0.13.195
+pytest-homeassistant-custom-component>=0.13.325
 coverage>=7.5
 mutmut>=3.2.2
