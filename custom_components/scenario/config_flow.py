@@ -101,18 +101,14 @@ class ScenarioConfigFlow(ConfigFlow, domain=DOMAIN):
     @staticmethod
     @callback
     def async_get_options_flow(
-        config_entry: ConfigEntry,
+        config_entry: ConfigEntry,  # noqa: ARG004
     ) -> OptionsFlow:
         """Create the options flow."""
-        return ScenarioOptionsFlowHandler(config_entry)
+        return ScenarioOptionsFlowHandler()
 
 
 class ScenarioOptionsFlowHandler(OptionsFlow):
     """Handle a option flow for Scenario."""
-
-    def __init__(self, config_entry: ConfigEntry) -> None:
-        """Initialize options flow."""
-        self.config_entry: ConfigEntry = config_entry
 
     async def async_step_init(
         self, user_input: dict[str, Any] | None = None

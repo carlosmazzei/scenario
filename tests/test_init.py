@@ -320,9 +320,9 @@ async def test_async_unload_entry_failure(
         await hass.config_entries.async_unload(mock_config_entry.entry_id)
         await hass.async_block_till_done()
 
-    # The integration function might have returned True,
-    # but HA sees partial unload => STILL loaded
-    assert mock_config_entry.state == ConfigEntryState.LOADED
+    # Partial unload (async_close ran, but platform unload returned False) =>
+    # Home Assistant marks the entry as FAILED_UNLOAD.
+    assert mock_config_entry.state == ConfigEntryState.FAILED_UNLOAD
     mock_ifsei.async_close.assert_called_once()
 
 
