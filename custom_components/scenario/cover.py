@@ -75,23 +75,26 @@ class ScenarioCover(ScenarioUpdatableEntity, CoverEntity):
     async def async_open_cover(self) -> None:
         """Open the cover."""
         if self.unique_id is not None:
+            _LOGGER.debug("Opening cover %s", self.name)
             await self._ifsei.async_update_cover_state(self.unique_id, int(self.up))
         else:
-            _LOGGER.debug("Missing device unique id")
+            _LOGGER.warning("Missing device unique id")
 
     async def async_close_cover(self) -> None:
         """Close the cover."""
         if self.unique_id is not None:
+            _LOGGER.debug("Closing cover %s", self.name)
             await self._ifsei.async_update_cover_state(self.unique_id, int(self.down))
         else:
-            _LOGGER.debug("Missing device unique id")
+            _LOGGER.warning("Missing device unique id")
 
     async def async_stop_cover(self) -> None:
         """Stop the cover."""
         if self.unique_id is not None:
+            _LOGGER.debug("Stopping cover %s", self.name)
             await self._ifsei.async_update_cover_state(self.unique_id, int(self.stop))
         else:
-            _LOGGER.debug("Missing device unique id")
+            _LOGGER.warning("Missing device unique id")
 
     async def async_will_remove_from_hass(self) -> None:
         """Remove callbacks."""
@@ -105,8 +108,12 @@ class ScenarioCover(ScenarioUpdatableEntity, CoverEntity):
 
         if available is not None:
             self._attr_available = available
+            _LOGGER.debug("Set cover %s availability to %s", self.name, available)
 
         if command is not None and state is not None:
+            _LOGGER.debug(
+                "Cover %s received command=%s, state=%s", self.name, command, state
+            )
             if command == IFSEI_COVER_DOWN and state == IFSEI_ATTR_SCENE_ACTIVE:
                 self._attr_is_closed = True
             elif command == IFSEI_COVER_UP and state == IFSEI_ATTR_SCENE_ACTIVE:
