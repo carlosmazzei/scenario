@@ -53,6 +53,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     port = entry.data[CONF_PORT]
     protocol = Protocol[entry.data[CONF_PROTOCOL].upper()]
 
+    logging.getLogger("pyscenario").setLevel(_LOGGER.getEffectiveLevel())
+
     hass.data.setdefault(DOMAIN, {})
     entry_data = hass.data[DOMAIN].setdefault(entry.entry_id, {})
 
@@ -123,11 +125,18 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             reconnect=entry_data[IFSEI_CONF_RECONNECT],
             delay=entry_data[IFSEI_CONF_RECONNECT_DELAY],
         )
+        _LOGGER.debug(
+            "Options updated: send_delay=%s, reconnect=%s, reconnect_delay=%s",
+            entry_data[CONF_DELAY],
+            entry_data[IFSEI_CONF_RECONNECT],
+            entry_data[IFSEI_CONF_RECONNECT_DELAY],
+        )
 
     entry.async_on_unload(entry.add_update_listener(update_listener))
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
+    _LOGGER.info("Setup complete for entry %s (%s:%s)", entry_id, host, port)
     return True
 
 
@@ -146,15 +155,18 @@ def _async_register_scenario_device(
     )
 
     device_registry.async_get_or_create(**device_args, config_entry_id=config_entry_id)
+    _LOGGER.debug("Registered IFSEI device %s", ifsei.get_device_id())
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload the bridge from a config entry."""
+    _LOGGER.debug("Unloading entry %s", entry.entry_id)
     entry_data = hass.data[DOMAIN][entry.entry_id]
     ifsei: IFSEI = entry_data[CONTROLLER_ENTRY]
     await ifsei.async_close()
     if unload_ok := await hass.config_entries.async_unload_platforms(entry, PLATFORMS):
         hass.data[DOMAIN].pop(entry.entry_id)
+    _LOGGER.info("Entry %s unloaded (ok=%s)", entry.entry_id, unload_ok)
     return unload_ok
 
 

@@ -101,7 +101,7 @@ class ScenarioLight(ScenarioUpdatableEntity, LightEntity):
 
         if rgbw is not None:
             colors = list(rgbw)
-            _LOGGER.debug(f"Current color: {colors}")  # noqa: G004
+            _LOGGER.debug("Current color: %s", colors)
             scaled_colors[0] = to_scenario_level(colors[0])
             scaled_colors[1] = to_scenario_level(colors[1])
             scaled_colors[2] = to_scenario_level(colors[2])
@@ -111,9 +111,14 @@ class ScenarioLight(ScenarioUpdatableEntity, LightEntity):
 
         if self._ifsei.device_manager is not None and self._attr_unique_id is not None:
             _LOGGER.debug("Setting color: %s", scaled_colors)
-            # Update light state
             await self._ifsei.async_update_light_state(
                 self._attr_unique_id, scaled_colors
+            )
+        else:
+            _LOGGER.warning(
+                "Cannot set brightness: device_manager=%s, unique_id=%s",
+                self._ifsei.device_manager is not None,
+                self._attr_unique_id,
             )
 
     async def async_turn_on(self, **kwargs: Any) -> None:
@@ -123,10 +128,12 @@ class ScenarioLight(ScenarioUpdatableEntity, LightEntity):
         if brightness is None:
             brightness = 255
 
+        _LOGGER.debug("Turning on light %s (brightness=%s)", self.name, brightness)
         await self._async_set_brightness(brightness, **kwargs)
 
     async def async_turn_off(self, **kwargs: Any) -> None:
         """Turn the light off."""
+        _LOGGER.debug("Turning off light %s", self.name)
         await self._async_set_brightness(0, **kwargs)
 
     async def async_will_remove_from_hass(self) -> None:

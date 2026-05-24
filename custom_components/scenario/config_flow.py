@@ -63,14 +63,17 @@ class ScenarioConfigFlow(ConfigFlow, domain=DOMAIN):
                 IPv4Address(user_input[CONF_HOST])
             except AddressValueError:
                 errors["base"] = "invalid_ip"
+                _LOGGER.debug("Invalid IP address: %s", user_input[CONF_HOST])
 
             # Check if is a valid port number
             try:
                 input_port = int(user_input[CONF_PORT])
                 if not (MIN_PORT_NUMBER <= input_port <= MAX_PORT_NUMBER):
                     errors["base"] = "invalid_port"
+                    _LOGGER.debug("Port out of range: %s", user_input[CONF_PORT])
             except ValueError:
                 errors["base"] = "invalid_port"
+                _LOGGER.debug("Invalid port value: %s", user_input[CONF_PORT])
 
             if not errors:
                 ifsei = IFSEI(
@@ -84,6 +87,12 @@ class ScenarioConfigFlow(ConfigFlow, domain=DOMAIN):
                 controller_unique_id = ifsei.get_device_id()
                 await self.async_set_unique_id(controller_unique_id)
                 self._abort_if_unique_id_configured()
+                _LOGGER.info(
+                    "Creating entry for controller %s at %s:%s",
+                    controller_unique_id,
+                    user_input[CONF_HOST],
+                    user_input[CONF_PORT],
+                )
                 return self.async_create_entry(
                     title=controller_unique_id,
                     data={
@@ -115,6 +124,12 @@ class ScenarioOptionsFlowHandler(OptionsFlow):
     ) -> ConfigFlowResult:
         """Handle options flow."""
         if user_input is not None:
+            _LOGGER.debug(
+                "Options updated: delay=%s, reconnect=%s, reconnect_delay=%s",
+                user_input[CONF_DELAY],
+                user_input[IFSEI_CONF_RECONNECT],
+                user_input[IFSEI_CONF_RECONNECT_DELAY],
+            )
             return self.async_create_entry(
                 title="",
                 data={

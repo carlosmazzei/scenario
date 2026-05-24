@@ -103,21 +103,21 @@ async def test_missing_unique_id_for_commands(
     """
     Test scenario where unique_id is None.
 
-    Commands should log a debug message instead of calling async_update_cover_state.
+    Commands should log a warning instead of calling async_update_cover_state.
     """
     mock_cover.unique_id = None
     entity = ScenarioCover(mock_cover, mock_ifsei)
     entity.hass = hass
 
-    with patch("logging.Logger.debug") as mock_log:
+    with patch("logging.Logger.warning") as mock_log:
         await entity.async_open_cover()
         mock_log.assert_any_call("Missing device unique id")
 
-    with patch("logging.Logger.debug") as mock_log:
+    with patch("logging.Logger.warning") as mock_log:
         await entity.async_close_cover()
         mock_log.assert_any_call("Missing device unique id")
 
-    with patch("logging.Logger.debug") as mock_log:
+    with patch("logging.Logger.warning") as mock_log:
         await entity.async_stop_cover()
         mock_log.assert_any_call("Missing device unique id")
 

@@ -1,5 +1,6 @@
 """Unit tests for the scenario integration init."""
 
+import logging
 from unittest.mock import AsyncMock, MagicMock, call, patch
 
 import pytest
@@ -467,3 +468,32 @@ async def test_scenario_updatable_entity_with_disconnected_ifsei() -> None:
 
     # Entity should reflect that IFSEI is not connected
     assert entity.available is False
+
+
+@pytest.mark.asyncio
+async def test_pyscenario_logger_level_is_set(
+    hass: HomeAssistant,
+    mock_config_entry: MockConfigEntry,
+    mock_ifsei: MagicMock,
+) -> None:
+    """Test that pyscenario logger level is set to match integration level."""
+    mock_config_entry.add_to_hass(hass)
+
+    with (
+        patch("custom_components.scenario.IFSEI", return_value=mock_ifsei),
+        patch("custom_components.scenario.Path") as mock_path,
+        patch(
+            "homeassistant.config_entries.ConfigEntries.async_forward_entry_setups",
+            return_value=None,
+        ),
+    ):
+        mock_path.return_value.as_posix.return_value = "/fake/path"
+
+        await hass.config_entries.async_setup(mock_config_entry.entry_id)
+        await hass.async_block_till_done()
+
+    assert mock_config_entry.state == ConfigEntryState.LOADED
+
+    pyscenario_logger = logging.getLogger("pyscenario")
+    integration_logger = logging.getLogger("custom_components.scenario")
+    assert pyscenario_logger.level == integration_logger.getEffectiveLevel()
