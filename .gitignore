@@ -17,6 +17,7 @@ coverage.xml
 .venv
 .claude
 .mutmut-cache
+.antigravitycli
 
 
 # Home Assistant configuration

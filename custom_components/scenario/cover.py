@@ -75,6 +75,9 @@ class ScenarioCover(ScenarioUpdatableEntity, CoverEntity):
         self._is_closing: bool = False
         self._last_relay_on_time: float | None = None
 
+        if not self._has_relay_feedback:
+            self.assumed_state = True
+
         self._device.add_subscriber(self.async_update_callback)
 
     @property
