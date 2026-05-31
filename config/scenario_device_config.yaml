@@ -464,33 +464,51 @@ shades:
     address1: "0002"
     address2: "0003"
     address3: "0004"
+    module: 0
+    open_channel: 1
+    close_channel: 2
   - id: 2
     name: Persiana LD
     zone: 10
     address1: "0005"
     address2: "0006"
     address3: "0007"
+    module: 0
+    open_channel: 3
+    close_channel: 4
   - id: 3
     name: Persiana LE
     zone: 10
     address1: "0008"
     address2: "0009"
     address3: "0010"
+    module: 0
+    open_channel: 5
+    close_channel: 6
   - id: 4
     name: Persiana LD
     zone: 5
     address1: "0013"
     address2: "0014"
     address3: "0015"
+    module: 0
+    open_channel: 7
+    close_channel: 8
   - id: 5
     name: Persiana LE
     zone: 5
-    address1: "0102"
+    address1: "0104"
     address2: "0103"
-    address3: "0104"
+    address3: "0102"
+    module: 1
+    open_channel: 6
+    close_channel: 5
   - id: 6
     name: Persiana Lateral
     zone: 5
     address1: "0105"
     address2: "0106"
     address3: "0107"
+    module: 1
+    open_channel: 7
+    close_channel: 8
