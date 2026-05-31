@@ -77,6 +77,7 @@ class ScenarioCover(ScenarioUpdatableEntity, CoverEntity):
 
         if not self._has_relay_feedback:
             self.assumed_state = True
+            self._attr_is_closed = None
 
         self._device.add_subscriber(self.async_update_callback)
 
