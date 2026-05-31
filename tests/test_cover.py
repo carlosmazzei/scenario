@@ -304,7 +304,7 @@ def test_properties_with_relay(scenario_cover_relay: ScenarioCover) -> None:
     assert scenario_cover_relay.current_cover_position == 50  # noqa: PLR2004
     assert scenario_cover_relay.is_opening is False
     assert scenario_cover_relay.is_closing is False
-    assert scenario_cover_relay.is_closed is False  # position=50 != 0
+    assert scenario_cover_relay.is_closed is False
 
 
 def test_open_relay_on(scenario_cover_relay: ScenarioCover) -> None:
