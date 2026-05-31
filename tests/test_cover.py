@@ -33,6 +33,9 @@ def mock_cover() -> MagicMock:
     cover.up = "0002"
     cover.down = "0003"
     cover.stop = "0004"
+    cover.module = None
+    cover.open_channel = None
+    cover.close_channel = None
     return cover
 
 
@@ -138,8 +141,8 @@ def test_properties(scenario_cover: ScenarioCover) -> None:
     )
     assert scenario_cover.device_class == CoverDeviceClass.SHADE
     assert scenario_cover.assumed_state is True
-    # Initially True, as set in __init__:
-    assert scenario_cover.is_closed is True
+    # No relay feedback: is_closed returns _attr_is_closed (None initially)
+    assert scenario_cover.is_closed is None
     # Verify individual properties
     assert scenario_cover.up == "0002"
     assert scenario_cover.down == "0003"
@@ -152,7 +155,8 @@ def test_update_callback_down_active(scenario_cover: ScenarioCover) -> None:
     Test update callback.
 
     Test update callback when the cover command is 'down'
-    and state is 'scene active' -> sets is_closed to True.
+    and state is 'scene active' -> sets _attr_is_closed to True.
+    Only applies to covers without relay feedback.
     """
     with patch.object(scenario_cover, "async_write_ha_state") as mock_write_state:
         scenario_cover.async_update_callback(
@@ -162,7 +166,7 @@ def test_update_callback_down_active(scenario_cover: ScenarioCover) -> None:
                 IFSEI_ATTR_STATE: IFSEI_ATTR_SCENE_ACTIVE,
             }
         )
-        assert scenario_cover.is_closed is True
+        assert scenario_cover._attr_is_closed is True
         assert scenario_cover.available is True
         mock_write_state.assert_called_once()
 
@@ -192,9 +196,10 @@ def test_update_callback_stop_active(scenario_cover: ScenarioCover) -> None:
     Test update callback.
 
     Test update callback when command is 'stop' and state is
-    'scene active' or 'scene inactive' -> set is_closing/is_opening = False.
+    'scene active' or 'scene inactive' -> set _attr_is_closing/_attr_is_opening = False.
+    Only applies to covers without relay feedback.
     """
-    # Force is_closing/is_opening to True for test
+    # Force _attr_is_closing/_attr_is_opening to True for test
     scenario_cover._attr_is_closing = True
     scenario_cover._attr_is_opening = True
 
@@ -236,7 +241,7 @@ def test_update_callback_only_availability(scenario_cover: ScenarioCover) -> Non
 
 
 def test_update_callback_none_values(scenario_cover: ScenarioCover) -> None:
-    """Test update callback with None values doesn't change state."""
+    """Test update callback with None values doesn't change state or write HA state."""
     initial_closed_state = scenario_cover.is_closed
     with patch.object(scenario_cover, "async_write_ha_state") as mock_write_state:
         scenario_cover.async_update_callback(
@@ -246,16 +251,121 @@ def test_update_callback_none_values(scenario_cover: ScenarioCover) -> None:
             }
         )
         assert scenario_cover.is_closed == initial_closed_state
-        mock_write_state.assert_called_once()
+        mock_write_state.assert_not_called()
 
 
 def test_update_callback_command_without_state(scenario_cover: ScenarioCover) -> None:
-    """Test update callback with command but no state."""
+    """Test update callback with command but no state does not write HA state."""
     initial_closed_state = scenario_cover.is_closed
     with patch.object(scenario_cover, "async_write_ha_state") as mock_write_state:
         scenario_cover.async_update_callback(**{IFSEI_ATTR_COMMAND: IFSEI_COVER_DOWN})
         assert scenario_cover.is_closed == initial_closed_state
-        mock_write_state.assert_called_once()
+        mock_write_state.assert_not_called()
+
+
+@pytest.fixture
+def mock_cover_with_relay() -> MagicMock:
+    """Create a mock cover fixture with relay feedback configured."""
+    cover = MagicMock()
+    cover.unique_id = "test_cover_relay_id"
+    cover.up = "0008"
+    cover.down = "0010"
+    cover.stop = "0009"
+    cover.module = 0
+    cover.open_channel = 5
+    cover.close_channel = 6
+    return cover
+
+
+@pytest.fixture
+async def scenario_cover_relay(
+    hass: HomeAssistant, mock_cover_with_relay: MagicMock, mock_ifsei: MagicMock
+) -> ScenarioCover:
+    """Create a ScenarioCover with relay feedback for testing."""
+    entity = ScenarioCover(mock_cover_with_relay, mock_ifsei)
+    entity.hass = hass
+    entity.entity_id = "cover.test_cover_relay"
+    await entity.async_added_to_hass()
+    return entity
+
+
+def test_properties_with_relay(scenario_cover_relay: ScenarioCover) -> None:
+    """Test properties for a cover with relay feedback."""
+    assert scenario_cover_relay.supported_features == (
+        CoverEntityFeature.OPEN
+        | CoverEntityFeature.CLOSE
+        | CoverEntityFeature.STOP
+        | CoverEntityFeature.SET_POSITION
+    )
+    assert (
+        not hasattr(scenario_cover_relay, "assumed_state")
+        or not scenario_cover_relay.assumed_state
+    )
+    assert scenario_cover_relay.current_cover_position == 50  # noqa: PLR2004
+    assert scenario_cover_relay.is_opening is False
+    assert scenario_cover_relay.is_closing is False
+    assert scenario_cover_relay.is_closed is False  # position=50 != 0
+
+
+def test_open_relay_on(scenario_cover_relay: ScenarioCover) -> None:
+    """Test open_relay=100 sets is_opening and records timestamp."""
+    with patch.object(scenario_cover_relay, "async_write_ha_state") as mock_write:
+        scenario_cover_relay.async_update_callback(open_relay=100)
+        assert scenario_cover_relay.is_opening is True
+        assert scenario_cover_relay.is_closing is False
+        assert scenario_cover_relay._last_relay_on_time is not None
+        mock_write.assert_called_once()
+
+
+def test_open_relay_off_updates_position(scenario_cover_relay: ScenarioCover) -> None:
+    """Test open_relay=0 after being active calculates position delta."""
+    scenario_cover_relay._current_position = 0
+    scenario_cover_relay._is_opening = True
+    scenario_cover_relay._last_relay_on_time = (
+        scenario_cover_relay._travel_time
+    )  # fake start
+
+    with (
+        patch("custom_components.scenario.cover.time.time") as mock_time,
+        patch.object(scenario_cover_relay, "async_write_ha_state"),
+    ):
+        mock_time.return_value = scenario_cover_relay._travel_time + 15  # 15s elapsed
+        scenario_cover_relay.async_update_callback(open_relay=0)
+
+    # 15s / 30s * 100 = 50%
+    assert scenario_cover_relay._current_position == 50  # noqa: PLR2004
+    assert scenario_cover_relay.is_opening is False
+    assert scenario_cover_relay._last_relay_on_time is None
+
+
+def test_close_relay_on(scenario_cover_relay: ScenarioCover) -> None:
+    """Test close_relay=100 sets is_closing and records timestamp."""
+    with patch.object(scenario_cover_relay, "async_write_ha_state") as mock_write:
+        scenario_cover_relay.async_update_callback(close_relay=100)
+        assert scenario_cover_relay.is_closing is True
+        assert scenario_cover_relay.is_opening is False
+        assert scenario_cover_relay._last_relay_on_time is not None
+        mock_write.assert_called_once()
+
+
+def test_close_relay_off_updates_position(scenario_cover_relay: ScenarioCover) -> None:
+    """Test close_relay=0 after being active calculates position delta."""
+    scenario_cover_relay._current_position = 100
+    scenario_cover_relay._is_closing = True
+    scenario_cover_relay._last_relay_on_time = scenario_cover_relay._travel_time
+
+    with (
+        patch("custom_components.scenario.cover.time.time") as mock_time,
+        patch.object(scenario_cover_relay, "async_write_ha_state"),
+    ):
+        mock_time.return_value = (
+            scenario_cover_relay._travel_time + 30
+        )  # 30s = full close
+        scenario_cover_relay.async_update_callback(close_relay=0)
+
+    assert scenario_cover_relay._current_position == 0
+    assert scenario_cover_relay.is_closing is False
+    assert scenario_cover_relay.is_closed is True
 
 
 @pytest.mark.asyncio
