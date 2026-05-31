@@ -497,9 +497,9 @@ shades:
   - id: 5
     name: Persiana LE
     zone: 5
-    address1: "0102"
+    address1: "0104"
     address2: "0103"
-    address3: "0104"
+    address3: "0102"
     module: 1
     open_channel: 6
     close_channel: 5
