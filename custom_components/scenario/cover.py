@@ -33,7 +33,6 @@ _LOGGER = logging.getLogger(__name__)
 
 DEFAULT_TRAVEL_TIME = 30.0
 RELAY_ACTIVE = 100
-POSITION_MAX = 100
 POSITION_MIN = 0
 
 
@@ -120,29 +119,25 @@ class ScenarioCover(ScenarioUpdatableEntity, CoverEntity):
             return self._current_position == 0
         return self._attr_is_closed
 
-    async def async_open_cover(self) -> None:
-        """Open the cover."""
+    async def _send_cover_command(self, address: str, action: str) -> None:
+        """Send a cover command to the IFSEI controller."""
         if self.unique_id is not None:
-            _LOGGER.debug("Opening cover %s", self.name)
-            await self._ifsei.async_update_cover_state(self.unique_id, int(self.up))
+            _LOGGER.debug("%s cover %s", action, self.name)
+            await self._ifsei.async_update_cover_state(self.unique_id, int(address))
         else:
             _LOGGER.warning("Missing device unique id")
+
+    async def async_open_cover(self) -> None:
+        """Open the cover."""
+        await self._send_cover_command(self.up, "Opening")
 
     async def async_close_cover(self) -> None:
         """Close the cover."""
-        if self.unique_id is not None:
-            _LOGGER.debug("Closing cover %s", self.name)
-            await self._ifsei.async_update_cover_state(self.unique_id, int(self.down))
-        else:
-            _LOGGER.warning("Missing device unique id")
+        await self._send_cover_command(self.down, "Closing")
 
     async def async_stop_cover(self) -> None:
         """Stop the cover."""
-        if self.unique_id is not None:
-            _LOGGER.debug("Stopping cover %s", self.name)
-            await self._ifsei.async_update_cover_state(self.unique_id, int(self.stop))
-        else:
-            _LOGGER.warning("Missing device unique id")
+        await self._send_cover_command(self.stop, "Stopping")
 
     async def async_set_cover_position(self, **kwargs: Any) -> None:
         """Move cover to a target position."""
@@ -155,64 +150,56 @@ class ScenarioCover(ScenarioUpdatableEntity, CoverEntity):
             await self.async_open_cover()
         else:
             await self.async_close_cover()
-        self.hass.loop.call_later(
-            travel_duration,
-            lambda: self.hass.async_create_task(self.async_stop_cover()),
-        )
+
+        def _schedule_stop() -> None:
+            self.hass.async_create_task(self.async_stop_cover())
+
+        self.hass.loop.call_later(travel_duration, _schedule_stop)
 
     async def async_will_remove_from_hass(self) -> None:
         """Remove callbacks."""
         self._device.remove_subscriber()
 
-    def _handle_open_relay(self, value: int, now: float) -> None:
-        """Process open relay state change."""
-        if value == RELAY_ACTIVE:
-            _LOGGER.debug("%s: Open relay energised", self.name)
-            self._is_opening = True
-            self._is_closing = False
-            self._last_relay_on_time = now
-        else:
-            _LOGGER.debug("%s: Open relay de-energised", self.name)
-            if self._is_opening and self._last_relay_on_time is not None:
-                elapsed = now - self._last_relay_on_time
-                delta = (elapsed / self._travel_time) * 100
-                self._current_position = min(
-                    POSITION_MAX, int(self._current_position + delta)
-                )
-                _LOGGER.info(
-                    "%s: Moved up %.2fs (+%d%%). Position: %d%%",
-                    self.name,
-                    elapsed,
-                    delta,
-                    self._current_position,
-                )
-            self._is_opening = False
-            self._last_relay_on_time = None
+    def _handle_relay(self, value: int, now: float, *, opening: bool) -> None:
+        """Process a relay state change for either open or close direction."""
+        is_active_flag = self._is_opening if opening else self._is_closing
+        direction_label = "Open" if opening else "Close"
+        move_label = "up" if opening else "down"
+        sign = 1 if opening else -1
 
-    def _handle_close_relay(self, value: int, now: float) -> None:
-        """Process close relay state change."""
         if value == RELAY_ACTIVE:
-            _LOGGER.debug("%s: Close relay energised", self.name)
-            self._is_closing = True
-            self._is_opening = False
+            _LOGGER.debug("%s: %s relay energised", self.name, direction_label)
+            self._is_opening = opening
+            self._is_closing = not opening
             self._last_relay_on_time = now
         else:
-            _LOGGER.debug("%s: Close relay de-energised", self.name)
-            if self._is_closing and self._last_relay_on_time is not None:
+            _LOGGER.debug("%s: %s relay de-energised", self.name, direction_label)
+            if is_active_flag and self._last_relay_on_time is not None:
                 elapsed = now - self._last_relay_on_time
                 delta = (elapsed / self._travel_time) * 100
                 self._current_position = max(
-                    POSITION_MIN, int(self._current_position - delta)
+                    POSITION_MIN,
+                    min(RELAY_ACTIVE, int(self._current_position + sign * delta)),
                 )
                 _LOGGER.info(
-                    "%s: Moved down %.2fs (-%d%%). Position: %d%%",
+                    "%s: Moved %s %.2fs (%+d%%). Position: %d%%",
                     self.name,
+                    move_label,
                     elapsed,
-                    delta,
+                    sign * delta,
                     self._current_position,
                 )
+            self._is_opening = False
             self._is_closing = False
             self._last_relay_on_time = None
+
+    def _handle_open_relay(self, value: int, now: float) -> None:
+        """Process open relay state change."""
+        self._handle_relay(value, now, opening=True)
+
+    def _handle_close_relay(self, value: int, now: float) -> None:
+        """Process close relay state change."""
+        self._handle_relay(value, now, opening=False)
 
     def _handle_scene_command(self, command: str, state: str) -> None:
         """Process legacy scene command (covers without relay feedback)."""
