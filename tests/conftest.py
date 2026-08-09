@@ -1,3 +1,4 @@
+# Copyright (c) 2019-2026 Carlos Mazzei @carlosmazzei
 """Fixtures for Scenario integration tests."""
 
 import pytest

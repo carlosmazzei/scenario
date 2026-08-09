@@ -15,6 +15,9 @@ ignore = [
     "ISC001", # incompatible with formatter
 ]
 
+[lint.flake8-copyright]
+author = "Carlos Mazzei"
+
 [lint.flake8-pytest-style]
 fixture-parentheses = false
 

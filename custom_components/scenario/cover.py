@@ -1,3 +1,4 @@
+# Copyright (c) 2019-2026 Carlos Mazzei @carlosmazzei
 """Platform for Scenario Covers."""
 
 import logging

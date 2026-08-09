@@ -1,3 +1,4 @@
+# Copyright (c) 2019-2026 Carlos Mazzei @carlosmazzei
 """Tests for Scenario Cover."""
 
 from unittest.mock import AsyncMock, MagicMock, patch
