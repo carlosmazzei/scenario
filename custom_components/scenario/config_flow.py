@@ -1,3 +1,4 @@
+# Copyright (c) 2019-2026 Carlos Mazzei @carlosmazzei
 """Config flow for Scenario IFSEI."""
 
 import logging

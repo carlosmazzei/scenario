@@ -1,3 +1,4 @@
+# Copyright (c) 2019-2026 Carlos Mazzei @carlosmazzei
 """Unit tests for the scenario integration init."""
 
 import logging
