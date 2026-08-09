@@ -1,3 +1,4 @@
+# Copyright (c) 2019-2026 Carlos Mazzei @carlosmazzei
 """Constants for the Scenario IFSEI integration."""
 
 from typing import Final

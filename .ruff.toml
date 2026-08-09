@@ -13,8 +13,10 @@ ignore = [
     "D212", # multi-line-summary-first-line (incompatible with formatter)
     "COM812", # incompatible with formatter
     "ISC001", # incompatible with formatter
-    "CPY001", # Missing copyright notice at top of file (no per-file copyright header convention in this repo)
 ]
+
+[lint.flake8-copyright]
+author = "Carlos Mazzei"
 
 [lint.flake8-pytest-style]
 fixture-parentheses = false
