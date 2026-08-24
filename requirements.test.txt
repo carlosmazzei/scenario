@@ -1,6 +1,6 @@
 pytest  # version pinned transitively by pytest-homeassistant-custom-component
 pytest-asyncio>=1.3.0
 pytest-cov>=7.1.0
-pytest-homeassistant-custom-component>=0.13.355
+pytest-homeassistant-custom-component>=0.13.356
 coverage  # version pinned transitively by pytest-homeassistant-custom-component
 mutmut>=3.7.0
